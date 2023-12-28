@@ -149,6 +149,28 @@ For example, if you want to send 100 units of Sepolia test LINK token from Ether
 npx hardhat ccip-token-transfer --source-blockchain ethereumSepolia --destination-blockchain avalancheFuji --receiver <RECEIVER_ADDRESS> --token-address 0x779877A7B0D9E8603169DdbD7836e478b4624789 --amount 100 --gas-limit 0
 ```
 
+Ethereum Sepolia to Optimism Goerli (1wei)
+```shell
+npx hardhat ccip-token-transfer --source-blockchain ethereumSepolia --destination-blockchain optimismGoerli --receiver 0x3c812AFCf93C73338fC31d1769AD1071Ea982E7d --token-address 0xFd57b4ddBf88a4e07fF4e34C487b99af2Fe82a05 --amount 1 --gas-limit 0
+```
+**Result 1**: [CCIP Explorer](https://ccip.chain.link)
+1. Transaction hash: 0xe61f8d40324c7d6f7b6bcd7499fe1f0bae9430daa220ff249d251ee4b65af064 (approve tokens to ccip router on source chain)
+2. Transaction hash: 0x3c9f6457caeee30d5239d2423433b678678da0d485abcb59d453862b4c3f68df(transfer tokens to ccip router on source chain)
+3. Estimated fees (wei): 383085066235825
+4. CCIP Message ID: 0x8276273abd9562359804e3611ed2b306c3205120282d656a278188805f9cd5aa
+5. https://ccip.chain.link/msg/0x8276273abd9562359804e3611ed2b306c3205120282d656a278188805f9cd5aa
+
+Ethereum Sepolia to Optimism Goerli (1000000000000000000 wei)
+```shell
+npx hardhat ccip-token-transfer --source-blockchain ethereumSepolia --destination-blockchain optimismGoerli --receiver 0x3c812AFCf93C73338fC31d1769AD1071Ea982E7d --token-address 0xFd57b4ddBf88a4e07fF4e34C487b99af2Fe82a05 --amount 1000000000000000000 --gas-limit 0
+```
+**Result 2**: [CCIP Explorer](https://ccip.chain.link)
+1. Transaction hash: 0xd1955530d4599d8414f32178ae72985d60f55016be8575e9f70dc7e7b027fcba (approve tokens to ccip router on source chain)
+2. Transaction hash: 0x33baeede26afb045fbb8263fb27a98c9612231eb9a2abf8be1f263bb34b48fbb(transfer tokens to ccip router on source chain)
+3. Estimated fees (wei): 383085066235825
+4. CCIP Message ID: 0x280498c3579be7f7416a2cf02af861155301204588cb4888234962eef8d47f08
+5. https://ccip.chain.link/msg/0x280498c3579be7f7416a2cf02af861155301204588cb4888234962eef8d47f08
+
 If you want to pay for CCIP fees in Sepolia test LINK, expand the previous command with the additional `--fee-token-address` flag:
 
 ```shell

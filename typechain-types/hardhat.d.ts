@@ -61,6 +61,42 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.Ownable__factory>;
     getContractFactory(
+      name: "IERC1822Proxiable",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IERC1822Proxiable__factory>;
+    getContractFactory(
+      name: "IERC1967",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IERC1967__factory>;
+    getContractFactory(
+      name: "IERC4906",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IERC4906__factory>;
+    getContractFactory(
+      name: "IBeacon",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IBeacon__factory>;
+    getContractFactory(
+      name: "ERC1967Proxy",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.ERC1967Proxy__factory>;
+    getContractFactory(
+      name: "ERC1967Upgrade",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.ERC1967Upgrade__factory>;
+    getContractFactory(
+      name: "Proxy",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.Proxy__factory>;
+    getContractFactory(
+      name: "Initializable",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.Initializable__factory>;
+    getContractFactory(
+      name: "UUPSUpgradeable",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.UUPSUpgradeable__factory>;
+    getContractFactory(
       name: "ERC721",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.ERC721__factory>;
@@ -101,6 +137,10 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.BasicTokenSender__factory>;
     getContractFactory(
+      name: "ERC4337BaseAccount",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.ERC4337BaseAccount__factory>;
+    getContractFactory(
       name: "DestinationMinter",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.DestinationMinter__factory>;
@@ -113,9 +153,37 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.SourceMinter__factory>;
     getContractFactory(
+      name: "IAccount",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IAccount__factory>;
+    getContractFactory(
+      name: "IAggregator",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IAggregator__factory>;
+    getContractFactory(
+      name: "IEntryPoint",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IEntryPoint__factory>;
+    getContractFactory(
+      name: "INonceManager",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.INonceManager__factory>;
+    getContractFactory(
+      name: "IStakeManager",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IStakeManager__factory>;
+    getContractFactory(
       name: "ProgrammableTokenTransfers",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.ProgrammableTokenTransfers__factory>;
+    getContractFactory(
+      name: "TranseptorAccount",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.TranseptorAccount__factory>;
+    getContractFactory(
+      name: "TranseptorAccountFactory",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.TranseptorAccountFactory__factory>;
     getContractFactory(
       name: "Withdraw",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -194,6 +262,51 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.Ownable>;
     getContractAt(
+      name: "IERC1822Proxiable",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IERC1822Proxiable>;
+    getContractAt(
+      name: "IERC1967",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IERC1967>;
+    getContractAt(
+      name: "IERC4906",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IERC4906>;
+    getContractAt(
+      name: "IBeacon",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IBeacon>;
+    getContractAt(
+      name: "ERC1967Proxy",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.ERC1967Proxy>;
+    getContractAt(
+      name: "ERC1967Upgrade",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.ERC1967Upgrade>;
+    getContractAt(
+      name: "Proxy",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.Proxy>;
+    getContractAt(
+      name: "Initializable",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.Initializable>;
+    getContractAt(
+      name: "UUPSUpgradeable",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.UUPSUpgradeable>;
+    getContractAt(
       name: "ERC721",
       address: string,
       signer?: ethers.Signer
@@ -244,6 +357,11 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.BasicTokenSender>;
     getContractAt(
+      name: "ERC4337BaseAccount",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.ERC4337BaseAccount>;
+    getContractAt(
       name: "DestinationMinter",
       address: string,
       signer?: ethers.Signer
@@ -259,10 +377,45 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.SourceMinter>;
     getContractAt(
+      name: "IAccount",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IAccount>;
+    getContractAt(
+      name: "IAggregator",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IAggregator>;
+    getContractAt(
+      name: "IEntryPoint",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IEntryPoint>;
+    getContractAt(
+      name: "INonceManager",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.INonceManager>;
+    getContractAt(
+      name: "IStakeManager",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IStakeManager>;
+    getContractAt(
       name: "ProgrammableTokenTransfers",
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.ProgrammableTokenTransfers>;
+    getContractAt(
+      name: "TranseptorAccount",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.TranseptorAccount>;
+    getContractAt(
+      name: "TranseptorAccountFactory",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.TranseptorAccountFactory>;
     getContractAt(
       name: "Withdraw",
       address: string,

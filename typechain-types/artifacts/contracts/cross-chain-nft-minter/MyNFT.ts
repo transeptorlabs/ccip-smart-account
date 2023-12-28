@@ -190,12 +190,16 @@ export interface MyNFTInterface extends utils.Interface {
   events: {
     "Approval(address,address,uint256)": EventFragment;
     "ApprovalForAll(address,address,bool)": EventFragment;
+    "BatchMetadataUpdate(uint256,uint256)": EventFragment;
+    "MetadataUpdate(uint256)": EventFragment;
     "OwnershipTransferred(address,address)": EventFragment;
     "Transfer(address,address,uint256)": EventFragment;
   };
 
   getEvent(nameOrSignatureOrTopic: "Approval"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "ApprovalForAll"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "BatchMetadataUpdate"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "MetadataUpdate"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Transfer"): EventFragment;
 }
@@ -223,6 +227,28 @@ export type ApprovalForAllEvent = TypedEvent<
 >;
 
 export type ApprovalForAllEventFilter = TypedEventFilter<ApprovalForAllEvent>;
+
+export interface BatchMetadataUpdateEventObject {
+  _fromTokenId: BigNumber;
+  _toTokenId: BigNumber;
+}
+export type BatchMetadataUpdateEvent = TypedEvent<
+  [BigNumber, BigNumber],
+  BatchMetadataUpdateEventObject
+>;
+
+export type BatchMetadataUpdateEventFilter =
+  TypedEventFilter<BatchMetadataUpdateEvent>;
+
+export interface MetadataUpdateEventObject {
+  _tokenId: BigNumber;
+}
+export type MetadataUpdateEvent = TypedEvent<
+  [BigNumber],
+  MetadataUpdateEventObject
+>;
+
+export type MetadataUpdateEventFilter = TypedEventFilter<MetadataUpdateEvent>;
 
 export interface OwnershipTransferredEventObject {
   previousOwner: string;
@@ -326,7 +352,7 @@ export interface MyNFT extends BaseContract {
       from: PromiseOrValue<string>,
       to: PromiseOrValue<string>,
       tokenId: PromiseOrValue<BigNumberish>,
-      _data: PromiseOrValue<BytesLike>,
+      data: PromiseOrValue<BytesLike>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
@@ -412,7 +438,7 @@ export interface MyNFT extends BaseContract {
     from: PromiseOrValue<string>,
     to: PromiseOrValue<string>,
     tokenId: PromiseOrValue<BigNumberish>,
-    _data: PromiseOrValue<BytesLike>,
+    data: PromiseOrValue<BytesLike>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
@@ -493,7 +519,7 @@ export interface MyNFT extends BaseContract {
       from: PromiseOrValue<string>,
       to: PromiseOrValue<string>,
       tokenId: PromiseOrValue<BigNumberish>,
-      _data: PromiseOrValue<BytesLike>,
+      data: PromiseOrValue<BytesLike>,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -550,6 +576,18 @@ export interface MyNFT extends BaseContract {
       operator?: PromiseOrValue<string> | null,
       approved?: null
     ): ApprovalForAllEventFilter;
+
+    "BatchMetadataUpdate(uint256,uint256)"(
+      _fromTokenId?: null,
+      _toTokenId?: null
+    ): BatchMetadataUpdateEventFilter;
+    BatchMetadataUpdate(
+      _fromTokenId?: null,
+      _toTokenId?: null
+    ): BatchMetadataUpdateEventFilter;
+
+    "MetadataUpdate(uint256)"(_tokenId?: null): MetadataUpdateEventFilter;
+    MetadataUpdate(_tokenId?: null): MetadataUpdateEventFilter;
 
     "OwnershipTransferred(address,address)"(
       previousOwner?: PromiseOrValue<string> | null,
@@ -624,7 +662,7 @@ export interface MyNFT extends BaseContract {
       from: PromiseOrValue<string>,
       to: PromiseOrValue<string>,
       tokenId: PromiseOrValue<BigNumberish>,
-      _data: PromiseOrValue<BytesLike>,
+      data: PromiseOrValue<BytesLike>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
@@ -711,7 +749,7 @@ export interface MyNFT extends BaseContract {
       from: PromiseOrValue<string>,
       to: PromiseOrValue<string>,
       tokenId: PromiseOrValue<BigNumberish>,
-      _data: PromiseOrValue<BytesLike>,
+      data: PromiseOrValue<BytesLike>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
