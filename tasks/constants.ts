@@ -68,3 +68,20 @@ export const routerConfig = {
         feeTokens: [LINK_ADDRESSES[`polygonMumbai`], `0x9c3C9283D3e44854697Cd22D3Faa240Cfb032889`]
     }
 }
+
+// https://github.com/eth-infinitism/account-abstraction/tree/develop/deployments
+export const ERC_4337_ENTRYPOINT_ADDRESSES: AddressMap = {
+    [`ethereumSepolia`]: `0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789`,
+    [`polygonMumbai`]: `0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789`,
+    [`optimismGoerli`]: `0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789`,
+    [`arbitrumTestnet`]: `0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789`,
+    [`avalancheFuji`]: `0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789`
+}
+
+export const ERC_4337_ACCOUNT_FACTORY_ADDRESSES: AddressMap = {
+    [`ethereumSepolia`]: `0x1299827B58857b068DF16B1F92Df1489a9599F4f`,
+    [`polygonMumbai`]: ``,
+    [`optimismGoerli`]: `0xE914373f8009245b5898D9440E78669D01EFCEE6`,
+    [`arbitrumTestnet`]: ``,
+    [`avalancheFuji`]: ``
+}

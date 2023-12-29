@@ -143,38 +143,34 @@ Where the list of supported chains consists of (case sensitive):
 - avalancheFuji
 - polygonMumbai
 
-For example, if you want to send 100 units of Sepolia test LINK token from Ethereum Sepolia to Avalanche Fuji, and you want to pay for CCIP fees in native coin (Sepolia ether in this case), run:
-
-```shell
-npx hardhat ccip-token-transfer --source-blockchain ethereumSepolia --destination-blockchain avalancheFuji --receiver <RECEIVER_ADDRESS> --token-address 0x779877A7B0D9E8603169DdbD7836e478b4624789 --amount 100 --gas-limit 0
-```
+For example, if you want to send 100 units of Sepolia test LINK token from Ethereum Sepolia to Optimism Goerli, and you want to pay for CCIP fees in native coin (Sepolia ether in this case), run:
 
 Ethereum Sepolia to Optimism Goerli (1wei)
 ```shell
 npx hardhat ccip-token-transfer --source-blockchain ethereumSepolia --destination-blockchain optimismGoerli --receiver 0x3c812AFCf93C73338fC31d1769AD1071Ea982E7d --token-address 0xFd57b4ddBf88a4e07fF4e34C487b99af2Fe82a05 --amount 1 --gas-limit 0
 ```
 **Result 1**: [CCIP Explorer](https://ccip.chain.link)
-1. Transaction hash: 0xe61f8d40324c7d6f7b6bcd7499fe1f0bae9430daa220ff249d251ee4b65af064 (approve tokens to ccip router on source chain)
-2. Transaction hash: 0x3c9f6457caeee30d5239d2423433b678678da0d485abcb59d453862b4c3f68df(transfer tokens to ccip router on source chain)
-3. Estimated fees (wei): 383085066235825
-4. CCIP Message ID: 0x8276273abd9562359804e3611ed2b306c3205120282d656a278188805f9cd5aa
-5. https://ccip.chain.link/msg/0x8276273abd9562359804e3611ed2b306c3205120282d656a278188805f9cd5aa
+- Transaction hash: 0xe61f8d40324c7d6f7b6bcd7499fe1f0bae9430daa220ff249d251ee4b65af064 (approve tokens to ccip router on source chain)
+- Transaction hash: 0x3c9f6457caeee30d5239d2423433b678678da0d485abcb59d453862b4c3f68df(transfer tokens to ccip router on source chain)
+- Estimated fees (wei): 383085066235825
+- CCIP Message ID: 0x8276273abd9562359804e3611ed2b306c3205120282d656a278188805f9cd5aa
+- https://ccip.chain.link/msg/0x8276273abd9562359804e3611ed2b306c3205120282d656a278188805f9cd5aa
 
 Ethereum Sepolia to Optimism Goerli (1000000000000000000 wei)
 ```shell
 npx hardhat ccip-token-transfer --source-blockchain ethereumSepolia --destination-blockchain optimismGoerli --receiver 0x3c812AFCf93C73338fC31d1769AD1071Ea982E7d --token-address 0xFd57b4ddBf88a4e07fF4e34C487b99af2Fe82a05 --amount 1000000000000000000 --gas-limit 0
 ```
 **Result 2**: [CCIP Explorer](https://ccip.chain.link)
-1. Transaction hash: 0xd1955530d4599d8414f32178ae72985d60f55016be8575e9f70dc7e7b027fcba (approve tokens to ccip router on source chain)
-2. Transaction hash: 0x33baeede26afb045fbb8263fb27a98c9612231eb9a2abf8be1f263bb34b48fbb(transfer tokens to ccip router on source chain)
-3. Estimated fees (wei): 383085066235825
-4. CCIP Message ID: 0x280498c3579be7f7416a2cf02af861155301204588cb4888234962eef8d47f08
-5. https://ccip.chain.link/msg/0x280498c3579be7f7416a2cf02af861155301204588cb4888234962eef8d47f08
+- Transaction hash: 0xd1955530d4599d8414f32178ae72985d60f55016be8575e9f70dc7e7b027fcba (approve tokens to ccip router on source chain)
+- Transaction hash: 0x33baeede26afb045fbb8263fb27a98c9612231eb9a2abf8be1f263bb34b48fbb(transfer tokens to ccip router on source chain)
+- Estimated fees (wei): 383085066235825
+- CCIP Message ID: 0x280498c3579be7f7416a2cf02af861155301204588cb4888234962eef8d47f08
+- https://ccip.chain.link/msg/0x280498c3579be7f7416a2cf02af861155301204588cb4888234962eef8d47f08
 
 If you want to pay for CCIP fees in Sepolia test LINK, expand the previous command with the additional `--fee-token-address` flag:
 
 ```shell
-npx hardhat ccip-token-transfer --source-blockchain ethereumSepolia --destination-blockchain avalancheFuji --receiver <RECEIVER_ADDRESS> --token-address 0x779877A7B0D9E8603169DdbD7836e478b4624789 --amount 100 --gas-limit 0 --fee-token-address 0x779877A7B0D9E8603169DdbD7836e478b4624789
+npx hardhat ccip-token-transfer --source-blockchain ethereumSepolia --destination-blockchain optimismGoerli --receiver <RECEIVER_ADDRESS> --token-address 0x779877A7B0D9E8603169DdbD7836e478b4624789 --amount 100 --gas-limit 0 --fee-token-address 0x779877A7B0D9E8603169DdbD7836e478b4624789
 ```
 
 The proposed CCIP best practice is to always verify the `Router.sol` address. If you want to pass the source blockchain `Router.sol` address you can use the optional `--router` flag:
@@ -194,23 +190,31 @@ npx hardhat deploy-basic-message-receiver
 --router <routerAddress> # Optional
 ```
 
-For example, if you want to send tokens from ethereumSepolia to avalancheFuji, you need to deploy this contract on avalancheFuji, by running:
+For example, if you want to send tokens from ethereumSepolia to optimismGoerli, you need to deploy this contract on optimismGoerli, by running:
 
 ```shell
-npx hardhat deploy-basic-message-receiver --network avalancheFuji
+npx hardhat deploy-basic-message-receiver --network optimismGoerli
 ```
 
-Optionally, you can pass the address of the Chainlink CCIP `Router.sol` smart contract on the avalancheFuji blockchain as a constructor argument. To do so, run the following command:
+Optionally, you can pass the address of the Chainlink CCIP `Router.sol` smart contract on the optimismGoerli blockchain as a constructor argument. To do so, run the following command:
 
 ```shell
-npx hardhat deploy-basic-message-receiver --network avalancheFuji --router <ROUTER_ADDRESS>
+npx hardhat deploy-basic-message-receiver --network optimismGoerli --router <ROUTER_ADDRESS>
 ```
+**Result**: BASIC_MESSAGE_RECEIVER_ADDRESS: `0x1015Fd27ff1d5d363b168b88b3e8b0CF681Da3e6`
 
-2. Transfer tokens to the deployed smart contract using the `ccip-token-transfer` task, by putting its address as a receiver flag. For example, if you want to send 100 units of LINK from ethereumSepolia run:
+2. Transfer tokens to the deployed smart contract using the `ccip-token-transfer` task, by putting its address as a receiver flag. For example, if you want to send 1000000000000000000 wei of CCIP-BnM from ethereumSepolia run:
 
 ```shell
-npx hardhat ccip-token-transfer --source-blockchain ethereumSepolia --destination-blockchain avalancheFuji --receiver <BASIC_MESSAGE_RECEIVER_ADDRESS> --token-address 0x779877A7B0D9E8603169DdbD7836e478b4624789 --amount 100
+npx hardhat ccip-token-transfer --source-blockchain ethereumSepolia --destination-blockchain optimismGoerli --receiver <BASIC_MESSAGE_RECEIVER_ADDRESS> --token-address 0xFd57b4ddBf88a4e07fF4e34C487b99af2Fe82a05 --amount 1000000000000000000
 ```
+**Result**: [CCIP Explorer](https://ccip.chain.link)
+- Transaction hash: 0xd9252a41e0e7309010345b563d0e0d2422c616833b7faa4071eed40cc2cc88de (approve tokens to ccip router on source chain)
+- Transaction hash: 0x306b3111b86f7e2ca920c256cb760d2c6b371558ae5d98ad6d28dc8850818621(transfer tokens to ccip router on source chain)
+- Estimated fees (wei): 1104313916635825
+- CCIP Message ID: 0xe122eb94643a916dc75f5f0d44126d22ba7c3337c6d4eee45bff8067f7bdccf2
+- https://ccip.chain.link/msg/0xe122eb94643a916dc75f5f0d44126d22ba7c3337c6d4eee45bff8067f7bdccf2
+**NOTE**: The CCIP message will not finalized on the destination blockchain if gas limit is not set corrects. You can anually send a transaction on the destination chain on ccip explorer to finalize the message if is fails due to out of gass error. Once the manual transaction is send with new gas limit the CCIP message will be finalized. 
 
 3. Once the CCIP message is finalized on the destination blockchain, you can always withdraw received tokens from the [`BasicMessageReceiver.sol`](./contracts/BasicMessageReceiver.sol) smart contract using the `withdraw` task. Note that the `--token-address` flag is optional. If not provided, native coins will be withdrawn.
 
@@ -222,11 +226,16 @@ npx hardhat withdraw
 --token-address <tokenToWithdraw> # Optional, if left empty native coins will be withdrawn
 ```
 
-For example, to withdraw 100 units of LINK previously sent, run:
+For example, to withdraw 1000000000000000000 wei of CCIP-BnM previously sent, run:
 
 ```shell
-npx hardhat withdraw --beneficiary <BENEFICIARY_ADDRESS> --blockchain avalancheFuji --from <BASIC_MESSAGE_RECEIVER_ADDRESS> --token-address 0x0b9d5D9136855f6FEc3c0993feE6E9CE8a297846
+npx hardhat withdraw --beneficiary <BENEFICIARY_ADDRESS> --blockchain optimismGoerli --from <BASIC_MESSAGE_RECEIVER_ADDRESS> --token-address 0xaBfE9D11A2f1D61990D1d253EC98B5Da00304F16
 ```
+
+npx hardhat withdraw --beneficiary 0x3c812AFCf93C73338fC31d1769AD1071Ea982E7d --blockchain optimismGoerli --from 0x1015Fd27ff1d5d363b168b88b3e8b0CF681Da3e6 --token-address 0xaBfE9D11A2f1D61990D1d253EC98B5Da00304F16
+
+**Result**: 
+- Transaction hash(optimismGoerli): 0xa6619a55d2f6efbce9efd46efd01dbf55c13bc719f15d894692980d91b6f736a 
 
 ### Example 3 - Transfer Token(s) from Smart Contract to any destination
 
