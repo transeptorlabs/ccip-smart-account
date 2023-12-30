@@ -114,6 +114,7 @@ export interface TranseptorAccountInterface extends utils.Interface {
     "getLatestMessageDetails()": FunctionFragment;
     "getNonce()": FunctionFragment;
     "getRouter()": FunctionFragment;
+    "getSupportedTokens(uint64)": FunctionFragment;
     "initialize(address)": FunctionFragment;
     "owner()": FunctionFragment;
     "proxiableUUID()": FunctionFragment;
@@ -136,6 +137,7 @@ export interface TranseptorAccountInterface extends utils.Interface {
       | "getLatestMessageDetails"
       | "getNonce"
       | "getRouter"
+      | "getSupportedTokens"
       | "initialize"
       | "owner"
       | "proxiableUUID"
@@ -194,6 +196,10 @@ export interface TranseptorAccountInterface extends utils.Interface {
   encodeFunctionData(functionFragment: "getNonce", values?: undefined): string;
   encodeFunctionData(functionFragment: "getRouter", values?: undefined): string;
   encodeFunctionData(
+    functionFragment: "getSupportedTokens",
+    values: [PromiseOrValue<BigNumberish>]
+  ): string;
+  encodeFunctionData(
     functionFragment: "initialize",
     values: [PromiseOrValue<string>]
   ): string;
@@ -246,6 +252,10 @@ export interface TranseptorAccountInterface extends utils.Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "getNonce", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "getRouter", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "getSupportedTokens",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "initialize", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
   decodeFunctionResult(
@@ -434,6 +444,11 @@ export interface TranseptorAccount extends BaseContract {
 
     getRouter(overrides?: CallOverrides): Promise<[string]>;
 
+    getSupportedTokens(
+      chainSelector: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<[string[]] & { tokens: string[] }>;
+
     initialize(
       anOwner: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
@@ -516,6 +531,11 @@ export interface TranseptorAccount extends BaseContract {
 
   getRouter(overrides?: CallOverrides): Promise<string>;
 
+  getSupportedTokens(
+    chainSelector: PromiseOrValue<BigNumberish>,
+    overrides?: CallOverrides
+  ): Promise<string[]>;
+
   initialize(
     anOwner: PromiseOrValue<string>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
@@ -595,6 +615,11 @@ export interface TranseptorAccount extends BaseContract {
     getNonce(overrides?: CallOverrides): Promise<BigNumber>;
 
     getRouter(overrides?: CallOverrides): Promise<string>;
+
+    getSupportedTokens(
+      chainSelector: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<string[]>;
 
     initialize(
       anOwner: PromiseOrValue<string>,
@@ -740,6 +765,11 @@ export interface TranseptorAccount extends BaseContract {
 
     getRouter(overrides?: CallOverrides): Promise<BigNumber>;
 
+    getSupportedTokens(
+      chainSelector: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     initialize(
       anOwner: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
@@ -822,6 +852,11 @@ export interface TranseptorAccount extends BaseContract {
     getNonce(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     getRouter(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    getSupportedTokens(
+      chainSelector: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
 
     initialize(
       anOwner: PromiseOrValue<string>,

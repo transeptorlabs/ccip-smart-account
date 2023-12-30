@@ -163,6 +163,17 @@ contract TranseptorAccount is ERC4337BaseAccount, UUPSUpgradeable, Initializable
     }
 
     /**
+     * @dev Get the supported token addresses from CCIP router contract
+     * @param chainSelector Chain selector for the destination chain
+     * @return tokens supported tokens address array
+     */
+    function getSupportedTokens(
+        uint64 chainSelector
+    ) external view returns (address[] memory tokens) {
+        tokens = IRouterClient(_router).getSupportedTokens(chainSelector);
+    }
+
+    /**
      * @dev Get the latest CCIP message details
      * @return Message details
      */
@@ -200,7 +211,7 @@ contract TranseptorAccount is ERC4337BaseAccount, UUPSUpgradeable, Initializable
             feeToken: payFeesIn == PayFeesIn.LINK ? _link : address(0)
         });
 
-        uint256 fee = IRouterClient(i_router).getFee(
+        uint256 fee = IRouterClient(_router).getFee(
             destinationChainSelector,
             message
         );
@@ -209,13 +220,13 @@ contract TranseptorAccount is ERC4337BaseAccount, UUPSUpgradeable, Initializable
 
         if (payFeesIn == PayFeesIn.LINK) {
             // We sent a max approval to the router contract in the constructor, so no need to approve LINK here just send ccip message to router
-            messageId = IRouterClient(i_router).ccipSend(
+            messageId = IRouterClient(_router).ccipSend(
                 destinationChainSelector,
                 message
             );
         } else {
             //  Send native token to router contract, no need to approve
-            messageId = IRouterClient(i_router).ccipSend{value: fee}(
+            messageId = IRouterClient(_router).ccipSend{value: fee}(
                 destinationChainSelector,
                 message
             );
