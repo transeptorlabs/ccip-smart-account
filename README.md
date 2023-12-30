@@ -249,19 +249,21 @@ npx hardhat deploy-basic-token-sender
 --link <linkTokenAddress> # Optional
 ```
 
-For example, if you want to send tokens from ethereumSepolia to avalancheFuji, run:
+For example, if you want to send tokens from ethereumSepolia to optimismGoerli, run:
 
 ```shell
 npx hardhat deploy-basic-token-sender --network ethereumSepolia
 ```
+**Result**: BASIC_MESSAGE_SENDER_ADDRESS: `0x3eBb030da253a2D398d2a4Cd323F455DdFc5010D`
 
 2. [OPTIONAL] If you want to send tokens to the smart contract, instead of EOA, you will need to deploy [`BasicMessageReceiver.sol`](./contracts/BasicMessageReceiver.sol) to the **destination blockchain**, using the `deploy-basic-message-receiver` task, and then put the address of that smart contract as a receiver.
 
-For example, if you want to send tokens from the [`BasicTokenSender.sol`](./contracts/BasicTokenSender.sol) smart contract on the ethereumSepolia blockchain to the [`BasicMessageReceiver.sol`](./contracts/BasicMessageReceiver.sol) smart contract on the avalancheFuji blockchain, run:
+For example, if you want to send tokens from the [`BasicTokenSender.sol`](./contracts/BasicTokenSender.sol) smart contract on the ethereumSepolia blockchain to the [`BasicMessageReceiver.sol`](./contracts/BasicMessageReceiver.sol) smart contract on the optimismGoerli blockchain, run:
 
 ```shell
-npx hardhat deploy-basic-message-receiver --network avalancheFuji
+npx hardhat deploy-basic-message-receiver --network optimismGoerli
 ```
+**Result**: BASIC_MESSAGE_RECEIVER_ADDRESS: `0x1015Fd27ff1d5d363b168b88b3e8b0CF681Da3e6`
 
 3. Fill the [`BasicTokenSender.sol`](./contracts/BasicTokenSender.sol) with tokens/coins for fees (you can always withdraw it later). You can do it manually from your wallet or by running the following task:
 
@@ -278,6 +280,8 @@ For example, if you want to send tokens from ethereumSepolia and fund it with 0.
 ```shell
 npx hardhat fill-sender --sender-address <BASIC_TOKEN_SENDER_ADDRESS> --blockchain ethereumSepolia --amount 10000000000000000 --pay-fees-in Native
 ```
+npx hardhat fill-sender --sender-address 0x3eBb030da253a2D398d2a4Cd323F455DdFc5010D --blockchain ethereumSepolia --amount 10000000000000000 --pay-fees-in Native
+**Result**: transactionHash: `0xb1f2e809c75ee70db5ffef0f83bef445aa706b9b043cad64be2e77ea579bac4a, 0x1c71d5766870f968732316dbe640e85b7aa102efc17a9349e35df776966d650a`
 
 4. Finally, send tokens by providing the array of `{token, amount}` objects, using the `ccip-token-transfer-batch` task:
 
@@ -294,11 +298,18 @@ npx hardhat ccip-token-transfer-batch
 
 The `payFeesIn` flag determines whether you are paying for CCIP fees with LINK tokens or native coins on the source blockchain (Pass "Native" or "LINK").
 
-For example, to send 100 units of LINK tokens and 100 units of CCIP-BnM tokens from ethereumSepolia to avalancheFuji and pay fees in Sepolia ether, run:
+For example, to send 100 units of CCIP-LnM tokens and 100 units of CCIP-BnM tokens from ethereumSepolia to optimismGoerli and pay fees in Sepolia ether, run:
 
 ```shell
-npx hardhat ccip-token-transfer-batch --source-blockchain ethereumSepolia --basic-token-sender-address <BASIC_TOKEN_SENDER_ADDRESS> --destination-blockchain avalancheFuji --receiver <RECEIVER_ADDRESS> --token-amounts '[{"token":"0x779877A7B0D9E8603169DdbD7836e478b4624789","amount":"100"},{"token":"0xFd57b4ddBf88a4e07fF4e34C487b99af2Fe82a05","amount":"100"}]' --pay-fees-in Native
+npx hardhat ccip-token-transfer-batch --source-blockchain ethereumSepolia --basic-token-sender-address <BASIC_TOKEN_SENDER_ADDRESS> --destination-blockchain optimismGoerli --receiver <RECEIVER_ADDRESS> --token-amounts '[{"token":"0xFd57b4ddBf88a4e07fF4e34C487b99af2Fe82a05","amount":"100"},{"token":"0x466D489b6d36E7E3b824ef491C225F5830E81cC1","amount":"100"}]' --pay-fees-in Native
 ```
+
+**Result**: [CCIP Explorer](https://ccip.chain.link)
+- Transaction hash: 0xbf49e02c222d1ce0064baf0f16dae69ec717cad99cce24fa7588af8aaae895e2 (approve tokens to sender contract on source chain)
+- Transaction hash: 0x136b4114f0fcd7ef77e1feec29bd04d3948f94c2a146003c5d4ee4a3b6010c47 (approve tokens to sender contract on source chain)
+- Transaction hash: 0xa7da5aebb085f68a2ef54db3ac964f31a4417ee274d9729ef188ff5fd65ab29b(transfer tokens batch to via sender contract on source chain)
+- CCIP Message ID: 0x4230bb0c0092e5f0f98b2eb60ab68559de9138e712998147d86765e78828c329
+- https://ccip.chain.link/msg/0x4230bb0c0092e5f0f98b2eb60ab68559de9138e712998147d86765e78828c329
 
 5. You can always withdraw tokens for Chainlink CCIP fees from the [`BasicTokenSender.sol`](./contracts/BasicTokenSender.sol) smart contract using the `withdraw` task. Note that the `--token-address` flag is optional. If not provided, native coins will be withdrawn.
 
@@ -315,6 +326,9 @@ For example, to withdraw Sepolia ether previously sent for Chainlink CCIP fees, 
 ```shell
 npx hardhat withdraw --beneficiary <BENEFICIARY_ADDRESS> --blockchain ethereumSepolia --from <BASIC_TOKEN_SENDER_ADDRESS>
 ```
+
+npx hardhat withdraw --beneficiary 0x3c812AFCf93C73338fC31d1769AD1071Ea982E7d --blockchain ethereumSepolia --from 0x3eBb030da253a2D398d2a4Cd323F455DdFc5010D
+npx hardhat withdraw --beneficiary 0x3c812AFCf93C73338fC31d1769AD1071Ea982E7d --blockchain optimismGoerli --from 0x1015Fd27ff1d5d363b168b88b3e8b0CF681Da3e6
 
 ### Example 4 - Send & Receive Tokens and Data
 

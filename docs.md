@@ -35,10 +35,45 @@ npx hardhat deploy-account-factory --network optimismGoerli --router <ROUTER_ADD
 ```
 
 ## Cross-chain Transeptor Smart account deployment
-
+<!-- TODO: -->
 To deploy a cross-chain transeptor smart account, run the following command:
 
 ```shell  
 npx hardhat ccip-smart-account-deploy
 --factory <accountFactoryAddress> # Optional
+```
+
+## Transfer Token(s) from Transeptor Smart Contract to any destination chain
+
+To transfer a token or batch of tokens from a single, universal, first make sure the token is supported by the Chainlink CCIP and your account has a balance of the token or is approved to spend the token.
+
+The externally exposed `ccipSend()` function on the Transeptor Smart Contract can be used to transfer tokens from the Transeptor Smart Contract to any destination chain. It takes the following parameters:
+- @param destinationChainSelector Destination chain selector
+- @param receiver Receiver address
+- @param messageText Message text
+- @param payFeesIn Pay fees in LINK or native token on source chain
+
+Example sending with hardhat paying fee in native token:
+```ts
+const targetChainSelector = 2664363617261496610 // optimismGoerli
+const receiver = '0x000000' // receiver address on target chain (optimismGoerli)
+const tokensToSendDetails = [
+    {
+        token: '0x4200000000';
+        amount: '1000000000000000000';
+    }
+]
+
+// create an instance of the Transeptor Smart Contract
+const transeptorAccount: TranseptorAccount = TranseptorAccount__factory.connect(basicTokenSenderAddress, signer)
+
+// call the ccipSend function with required parameters
+const sendTx = await transeptorAccount.ccipSend(
+    targetChainSelector, 
+    receiver, 
+    tokensToSendDetails, 
+    0
+)
+        
+const receipt = await sendTx.wait();
 ```

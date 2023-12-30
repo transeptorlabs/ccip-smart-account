@@ -106,6 +106,7 @@ export interface TranseptorAccountInterface extends utils.Interface {
   functions: {
     "addDeposit()": FunctionFragment;
     "ccipReceive((bytes32,uint64,bytes,bytes,(address,uint256)[]))": FunctionFragment;
+    "ccipSend(uint64,address,string,uint8)": FunctionFragment;
     "entryPoint()": FunctionFragment;
     "execute(address,uint256,bytes)": FunctionFragment;
     "executeBatch(address[],uint256[],bytes[])": FunctionFragment;
@@ -127,6 +128,7 @@ export interface TranseptorAccountInterface extends utils.Interface {
     nameOrSignatureOrTopic:
       | "addDeposit"
       | "ccipReceive"
+      | "ccipSend"
       | "entryPoint"
       | "execute"
       | "executeBatch"
@@ -151,6 +153,15 @@ export interface TranseptorAccountInterface extends utils.Interface {
   encodeFunctionData(
     functionFragment: "ccipReceive",
     values: [Client.Any2EVMMessageStruct]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "ccipSend",
+    values: [
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<string>,
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>
+    ]
   ): string;
   encodeFunctionData(
     functionFragment: "entryPoint",
@@ -221,6 +232,7 @@ export interface TranseptorAccountInterface extends utils.Interface {
     functionFragment: "ccipReceive",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "ccipSend", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "entryPoint", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "execute", data: BytesLike): Result;
   decodeFunctionResult(
@@ -263,7 +275,8 @@ export interface TranseptorAccountInterface extends utils.Interface {
     "BeaconUpgraded(address)": EventFragment;
     "Initialized(uint8)": EventFragment;
     "MessageReceived(bytes32,uint64,address,string)": EventFragment;
-    "TranseptorAccountInitialized(address,address)": EventFragment;
+    "MessageSent(bytes32,uint256,uint8)": EventFragment;
+    "TranseptorAccountInitialized(address,address,address)": EventFragment;
     "Upgraded(address)": EventFragment;
   };
 
@@ -271,6 +284,7 @@ export interface TranseptorAccountInterface extends utils.Interface {
   getEvent(nameOrSignatureOrTopic: "BeaconUpgraded"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Initialized"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "MessageReceived"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "MessageSent"): EventFragment;
   getEvent(
     nameOrSignatureOrTopic: "TranseptorAccountInitialized"
   ): EventFragment;
@@ -318,12 +332,25 @@ export type MessageReceivedEvent = TypedEvent<
 
 export type MessageReceivedEventFilter = TypedEventFilter<MessageReceivedEvent>;
 
+export interface MessageSentEventObject {
+  messageId: string;
+  ccipFee: BigNumber;
+  payFeesIn: number;
+}
+export type MessageSentEvent = TypedEvent<
+  [string, BigNumber, number],
+  MessageSentEventObject
+>;
+
+export type MessageSentEventFilter = TypedEventFilter<MessageSentEvent>;
+
 export interface TranseptorAccountInitializedEventObject {
   entryPoint: string;
   owner: string;
+  ccipRouter: string;
 }
 export type TranseptorAccountInitializedEvent = TypedEvent<
-  [string, string],
+  [string, string, string],
   TranseptorAccountInitializedEventObject
 >;
 
@@ -370,6 +397,14 @@ export interface TranseptorAccount extends BaseContract {
 
     ccipReceive(
       message: Client.Any2EVMMessageStruct,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    ccipSend(
+      destinationChainSelector: PromiseOrValue<BigNumberish>,
+      receiver: PromiseOrValue<string>,
+      messageText: PromiseOrValue<string>,
+      payFeesIn: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
@@ -447,6 +482,14 @@ export interface TranseptorAccount extends BaseContract {
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
+  ccipSend(
+    destinationChainSelector: PromiseOrValue<BigNumberish>,
+    receiver: PromiseOrValue<string>,
+    messageText: PromiseOrValue<string>,
+    payFeesIn: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
   entryPoint(overrides?: CallOverrides): Promise<string>;
 
   execute(
@@ -516,6 +559,14 @@ export interface TranseptorAccount extends BaseContract {
 
     ccipReceive(
       message: Client.Any2EVMMessageStruct,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    ccipSend(
+      destinationChainSelector: PromiseOrValue<BigNumberish>,
+      receiver: PromiseOrValue<string>,
+      messageText: PromiseOrValue<string>,
+      payFeesIn: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -617,13 +668,26 @@ export interface TranseptorAccount extends BaseContract {
       latestMessage?: null
     ): MessageReceivedEventFilter;
 
-    "TranseptorAccountInitialized(address,address)"(
+    "MessageSent(bytes32,uint256,uint8)"(
+      messageId?: null,
+      ccipFee?: null,
+      payFeesIn?: null
+    ): MessageSentEventFilter;
+    MessageSent(
+      messageId?: null,
+      ccipFee?: null,
+      payFeesIn?: null
+    ): MessageSentEventFilter;
+
+    "TranseptorAccountInitialized(address,address,address)"(
       entryPoint?: PromiseOrValue<string> | null,
-      owner?: PromiseOrValue<string> | null
+      owner?: PromiseOrValue<string> | null,
+      ccipRouter?: PromiseOrValue<string> | null
     ): TranseptorAccountInitializedEventFilter;
     TranseptorAccountInitialized(
       entryPoint?: PromiseOrValue<string> | null,
-      owner?: PromiseOrValue<string> | null
+      owner?: PromiseOrValue<string> | null,
+      ccipRouter?: PromiseOrValue<string> | null
     ): TranseptorAccountInitializedEventFilter;
 
     "Upgraded(address)"(
@@ -641,6 +705,14 @@ export interface TranseptorAccount extends BaseContract {
 
     ccipReceive(
       message: Client.Any2EVMMessageStruct,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    ccipSend(
+      destinationChainSelector: PromiseOrValue<BigNumberish>,
+      receiver: PromiseOrValue<string>,
+      messageText: PromiseOrValue<string>,
+      payFeesIn: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
@@ -714,6 +786,14 @@ export interface TranseptorAccount extends BaseContract {
 
     ccipReceive(
       message: Client.Any2EVMMessageStruct,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    ccipSend(
+      destinationChainSelector: PromiseOrValue<BigNumberish>,
+      receiver: PromiseOrValue<string>,
+      messageText: PromiseOrValue<string>,
+      payFeesIn: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 

@@ -13,6 +13,8 @@ import "./core/ERC4337BaseAccount.sol";
 
 import {CCIPReceiver} from "@chainlink/contracts-ccip/src/v0.8/ccip/applications/CCIPReceiver.sol";
 import {Client} from "@chainlink/contracts-ccip/src/v0.8/ccip/libraries/Client.sol";
+import {LinkTokenInterface} from "@chainlink/contracts/src/v0.8/interfaces/LinkTokenInterface.sol";
+import {IRouterClient} from "@chainlink/contracts-ccip/src/v0.8/ccip/interfaces/IRouterClient.sol";
 
 /**
  * @title TranseptorAccount
@@ -25,20 +27,31 @@ import {Client} from "@chainlink/contracts-ccip/src/v0.8/ccip/libraries/Client.s
 contract TranseptorAccount is ERC4337BaseAccount, UUPSUpgradeable, Initializable, CCIPReceiver {
     using ECDSA for bytes32;
 
+    // Used to determine if contract should use LINK or native token for ccip fee when send token cross chain
+    enum PayFeesIn {
+        Native,
+        LINK
+    }
+    // Address of the CCIP router contract on source chain
+    address immutable _router;
+
+    // Address of the LINK token contract on source chain
+    address immutable _link;
+
     // Owner of the account
     address public owner;
 
     // CCIPReceiver State
-    bytes32 latestMessageId;
-    uint64 latestSourceChainSelector;
-    address latestSender;
-    string latestMessage;
+    bytes32 _latestMessageId;
+    uint64 _latestSourceChainSelector;
+    address _latestSender;
+    string _latestMessage;
 
     // Entry point contract
     IEntryPoint private immutable _entryPoint;
 
     // Event emitted when TranseptorAccount is initialized
-    event TranseptorAccountInitialized(IEntryPoint indexed entryPoint, address indexed owner);
+    event TranseptorAccountInitialized(IEntryPoint indexed entryPoint, address indexed owner, address indexed ccipRouter);
 
     // Event emitted when CCIP message is received
     event MessageReceived(
@@ -48,12 +61,20 @@ contract TranseptorAccount is ERC4337BaseAccount, UUPSUpgradeable, Initializable
         string latestMessage
     );
 
+    // Event emitted when CCIP message is sent
+    event MessageSent(bytes32 messageId, uint256 ccipFee, PayFeesIn payFeesIn);
+
     /**
-     * @dev Constructor to initialize TranseptorAccount with an entry point
-     * @param anEntryPoint Address of the entry point contract
-     */
-    constructor(IEntryPoint anEntryPoint, address router) CCIPReceiver(router) {
+     * @dev Constructor to initialize TranseptorAccount with an entry point and cci router
+     * @param anEntryPoint Address of the entry point contract on source chain
+     * @param router Address of the CCIP router contract on source chain
+     * @param link Address of the LINK token contract on source chain
+    */
+    constructor(IEntryPoint anEntryPoint, address router, address link) CCIPReceiver(router) {
         _entryPoint = anEntryPoint;
+        _router = router;
+        _link = link;
+        LinkTokenInterface(_link).approve(router, type(uint256).max);
         _disableInitializers();
     }
 
@@ -151,11 +172,56 @@ contract TranseptorAccount is ERC4337BaseAccount, UUPSUpgradeable, Initializable
         returns (bytes32, uint64, address, string memory)
     {
         return (
-            latestMessageId,
-            latestSourceChainSelector,
-            latestSender,
-            latestMessage
+            _latestMessageId,
+            _latestSourceChainSelector,
+            _latestSender,
+            _latestMessage
         );
+    }
+
+    /**
+     * @dev Send a CCIP message
+     * @param destinationChainSelector Destination chain selector
+     * @param receiver Receiver address
+     * @param messageText Message text
+     * @param payFeesIn Pay fees in LINK or native token on source chain
+     */
+    function ccipSend(
+        uint64 destinationChainSelector,
+        address receiver,
+        string memory messageText,
+        PayFeesIn payFeesIn
+    ) external {
+        Client.EVM2AnyMessage memory message = Client.EVM2AnyMessage({
+            receiver: abi.encode(receiver),
+            data: abi.encode(messageText),
+            tokenAmounts: new Client.EVMTokenAmount[](0),
+            extraArgs: "",
+            feeToken: payFeesIn == PayFeesIn.LINK ? _link : address(0)
+        });
+
+        uint256 fee = IRouterClient(i_router).getFee(
+            destinationChainSelector,
+            message
+        );
+
+        bytes32 messageId;
+
+        if (payFeesIn == PayFeesIn.LINK) {
+            // We sent a max approval to the router contract in the constructor, so no need to approve LINK here just send ccip message to router
+            messageId = IRouterClient(i_router).ccipSend(
+                destinationChainSelector,
+                message
+            );
+        } else {
+            //  Send native token to router contract, no need to approve
+            messageId = IRouterClient(i_router).ccipSend{value: fee}(
+                destinationChainSelector,
+                message
+            );
+        }
+
+        emit MessageSent(messageId, fee, payFeesIn);
     }
 
     /* ******************************************************
@@ -170,16 +236,16 @@ contract TranseptorAccount is ERC4337BaseAccount, UUPSUpgradeable, Initializable
     function _ccipReceive(
         Client.Any2EVMMessage memory message
     ) internal override {
-        latestMessageId = message.messageId;
-        latestSourceChainSelector = message.sourceChainSelector;
-        latestSender = abi.decode(message.sender, (address));
-        latestMessage = abi.decode(message.data, (string));
+        _latestMessageId = message.messageId;
+        _latestSourceChainSelector = message.sourceChainSelector;
+        _latestSender = abi.decode(message.sender, (address));
+        _latestMessage = abi.decode(message.data, (string));
 
         emit MessageReceived(
-            latestMessageId,
-            latestSourceChainSelector,
-            latestSender,
-            latestMessage
+            _latestMessageId,
+            _latestSourceChainSelector,
+            _latestSender,
+            _latestMessage
         );
     }
 
@@ -189,7 +255,7 @@ contract TranseptorAccount is ERC4337BaseAccount, UUPSUpgradeable, Initializable
      */
     function _initialize(address anOwner) internal virtual {
         owner = anOwner;
-        emit TranseptorAccountInitialized(_entryPoint, owner);
+        emit TranseptorAccountInitialized(_entryPoint, owner, _router);
     }
 
     /**

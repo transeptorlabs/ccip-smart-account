@@ -15,8 +15,14 @@ import "./TranseptorAccount.sol";
 contract TranseptorAccountFactory {
     TranseptorAccount public immutable accountImplementation;
 
-    constructor(IEntryPoint _entryPoint, address router) {
-        accountImplementation = new TranseptorAccount(_entryPoint, router);
+    /**
+    * @dev Constructor that sets the address of the entry point and ccip router on source chain
+    * @param entryPoint Address of the entry point on source chain
+    * @param router Address of the router on source chain
+    * @param link Address of the LINK token on source chain
+    */
+    constructor(IEntryPoint entryPoint, address router, address link) {
+        accountImplementation = new TranseptorAccount(entryPoint, router, link);
     }
 
     /**
