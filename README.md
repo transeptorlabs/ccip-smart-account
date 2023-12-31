@@ -341,23 +341,25 @@ npx hardhat deploy-programmable-token-transfers
 --router <router> # Optional
 ```
 
-For example, if you want to send a message from Ethereum Sepolia to Polygon Mumbai type:
+For example, if you want to send a message from Ethereum Sepolia to Optimism Goerli  type:
 
 ```shell
 npx hardhat deploy-programmable-token-transfers --network ethereumSepolia
 ```
+**Result**: PROGRAMMABLE_TOKEN_CONTRACT_ADDRESS(ethereumSepolia): `0xCbAA069A23bB5a3daE332383e420445F0320c6F7`
 
-2. Open Metamask and fund your contract with Native tokens. For example, if you want to send a message from Ethereum Sepolia to Polygon Mumbai, you can send 0.1 Sepolia ETH to your contract.
+2. Open Metamask and fund your contract with Native tokens. For example, if you want to send a message from Ethereum Sepolia to Optimism Goerli, you can send 0.1 Sepolia ETH to your contract.
 
-3. Open Metamask and fund your contract with LINK tokens. For example, if you want to send a message from Ethereum Sepolia to Polygon Mumbai, you can send 0.01 Sepolia LINK to your contract.
+3. Open Metamask and fund your contract with LINK tokens. For example, if you want to send a message from Ethereum Sepolia to Optimism Goerli, you can send 0.01 Sepolia LINK to your contract.
 
 4. Deploy the [`ProgrammableTokenTransfers.sol`](./contracts/ProgrammableTokenTransfers.sol) smart contract to the **destination blockchain**:
 
-For example, if you want to receive a message from Ethereum Sepolia on Polygon Mumbai type:
+For example, if you want to receive a message from Ethereum Sepolia on Optimism Goerli type:
 
 ```shell
-npx hardhat deploy-programmable-token-transfers --network polygonMumbai
+npx hardhat deploy-programmable-token-transfers --network optimismGoerli
 ```
+**Result**: PROGRAMMABLE_TOKEN_CONTRACT_ADDRESS(optimismGoerli): `0x1299827B58857b068DF16B1F92Df1489a9599F4f`
 
 At this point, you have one **sender** contract on the source blockchain, and one **receiver** contract on the destination blockchain. Please note that [`ProgrammableTokenTransfers.sol`](./contracts/ProgrammableTokenTransfers.sol) can both send & receive tokens and data, hence we have two identical instances on both source and destination blockchains.
 
@@ -375,13 +377,20 @@ npx hardhat send-token-and-data
 --router <router> # Optional
 ```
 
-For example, if you want to send a "Hello World" message alongside 100 Sepolia LINK from Ethereum Sepolia to Polygon Mumbai type:
+For example, if you want to send a "Hello World" message alongside 100 Sepolia CCIP_BnM from Ethereum Sepolia to Polygon Mumbai type:
 
 ```shell
-npx hardhat send-token-and-data --source-blockchain ethereumSepolia --sender <CONTRACT_ADDRESS_ON_SOURCE_BLOCKCHAIN> --destination-blockchain polygonMumbai --receiver <CONTRACT_ADDRESS_ON_DESTINATION_BLOCKCHAIN> --message "Hello World" --token-address 0x779877A7B0D9E8603169DdbD7836e478b4624789 --amount 100
+npx hardhat send-token-and-data --source-blockchain ethereumSepolia --sender <CONTRACT_ADDRESS_ON_SOURCE_BLOCKCHAIN> --destination-blockchain optimismGoerli --receiver <CONTRACT_ADDRESS_ON_DESTINATION_BLOCKCHAIN> --message "Hello World" --token-address 0xFd57b4ddBf88a4e07fF4e34C487b99af2Fe82a05 --amount 100
 ```
 
-6. Once the CCIP message is finalized on the destination blockchain, you can see the details of the latest CCIP message received, by running the `get-received-message-details` task:
+npx hardhat send-token-and-data --source-blockchain ethereumSepolia --sender 0xCbAA069A23bB5a3daE332383e420445F0320c6F7 --destination-blockchain optimismGoerli --receiver 0x1299827B58857b068DF16B1F92Df1489a9599F4f --message "Hello World" --token-address 0xFd57b4ddBf88a4e07fF4e34C487b99af2Fe82a05 --amount 100
+
+**Result**: [CCIP Explorer](https://ccip.chain.link)
+- Transaction hash: 0xef214a842aa512c6df1e461612558dad2916992cce03570e10e60df363aff11e(transfer tokens to ccip router on source chain)
+- CCIP Message ID: 0xa436b037dd32372204b29589655540c433c758f3de7ba5c66d068734d5b773b2
+- https://ccip.chain.link/msg/0xa436b037dd32372204b29589655540c433c758f3de7ba5c66d068734d5b773b2
+
+1. Once the CCIP message is finalized on the destination blockchain, you can see the details of the latest CCIP message received, by running the `get-received-message-details` task:
 
 ```shell
 npx hardhat get-received-message-details
@@ -392,7 +401,7 @@ npx hardhat get-received-message-details
 For example,
 
 ```shell
-npx hardhat get-received-message-details --blockchain ethereumSepolia --contract-address <PROGRAMMABLE_TOKEN_TRANSFERS_ADDRESS_ON_DESTINATION_BLOCKCHAIN>
+npx hardhat get-received-message-details --blockchain optimismGoerli --contract-address 0x1299827B58857b068DF16B1F92Df1489a9599F4f
 ```
 
 ### Example 5 - Send & Receive Cross-Chain Messages and Pay with Native Coins
