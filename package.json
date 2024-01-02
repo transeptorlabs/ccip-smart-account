@@ -1,5 +1,5 @@
 {
-  "name": "transeptor-ccip",
+  "name": "transeptor-ccip-smart-account",
   "scripts": {
     "generateTypes": "typechain --target ethers-v5 --out-dir typechain-types './abi/*.json'"
   },

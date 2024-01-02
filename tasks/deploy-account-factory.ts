@@ -1,16 +1,20 @@
 import { task } from "hardhat/config";
 import { HardhatRuntimeEnvironment, TaskArguments } from "hardhat/types";
-import { getPrivateKey, getProviderRpcUrl, getRouterConfig, getEntryPointAddess } from "./utils";
+import { getPrivateKey, getProviderRpcUrl, getRouterConfig, getEntryPointAddess, getLinkTokenAddress } from "./utils";
 import { Wallet, providers } from "ethers";
 import { TranseptorAccountFactory__factory, TranseptorAccountFactory } from "../typechain-types";
 import { Spinner } from "../utils/spinner";
 
 task(`deploy-account-factory`, `Deploys the TranseptorAccountFactory smart contract`)
     .addOptionalParam(`router`, `The address of the Router contract`)
-    .addOptionalParam(`entrypoint`, `The address of the erc4337 entrypoint contract`)
     .setAction(async (taskArguments: TaskArguments, hre: HardhatRuntimeEnvironment) => {
+        if (hre.network.name === 'ethereumSepolia') {
+            throw new Error("This task cannot be executed on the ethereumSepolia network");
+        }
+
         const routerAddress = taskArguments.router ? taskArguments.router : getRouterConfig(hre.network.name).address;
-        const entrypointAddress = taskArguments.entrypoint ? taskArguments.entrypoint : getEntryPointAddess(hre.network.name);
+        const entrypointAddress = getEntryPointAddess(hre.network.name);
+        const linkAddress = getLinkTokenAddress(hre.network.name);
 
         const privateKey = getPrivateKey();
         const rpcProviderUrl = getProviderRpcUrl(hre.network.name);
@@ -25,7 +29,7 @@ task(`deploy-account-factory`, `Deploys the TranseptorAccountFactory smart contr
         spinner.start();
 
         const transeptorAccountFactoryFactory: TranseptorAccountFactory__factory = await hre.ethers.getContractFactory('TranseptorAccountFactory') as TranseptorAccountFactory__factory;
-        const transeptorAccountFactory: TranseptorAccountFactory = await transeptorAccountFactoryFactory.deploy(entrypointAddress, routerAddress);
+        const transeptorAccountFactory: TranseptorAccountFactory = await transeptorAccountFactoryFactory.deploy(entrypointAddress, routerAddress, linkAddress);
         await transeptorAccountFactory.deployed();
 
         spinner.stop();

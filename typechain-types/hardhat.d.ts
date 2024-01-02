@@ -69,10 +69,6 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IERC1967__factory>;
     getContractFactory(
-      name: "IERC4906",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.IERC4906__factory>;
-    getContractFactory(
       name: "IBeacon",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IBeacon__factory>;
@@ -97,61 +93,13 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.UUPSUpgradeable__factory>;
     getContractFactory(
-      name: "ERC721",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.ERC721__factory>;
-    getContractFactory(
-      name: "ERC721URIStorage",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.ERC721URIStorage__factory>;
-    getContractFactory(
-      name: "IERC721Metadata",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.IERC721Metadata__factory>;
-    getContractFactory(
-      name: "IERC721",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.IERC721__factory>;
-    getContractFactory(
-      name: "IERC721Receiver",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.IERC721Receiver__factory>;
-    getContractFactory(
-      name: "ERC165",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.ERC165__factory>;
-    getContractFactory(
-      name: "IERC165",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.IERC165__factory>;
-    getContractFactory(
-      name: "BasicMessageReceiver",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.BasicMessageReceiver__factory>;
-    getContractFactory(
-      name: "BasicMessageSender",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.BasicMessageSender__factory>;
-    getContractFactory(
-      name: "BasicTokenSender",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.BasicTokenSender__factory>;
-    getContractFactory(
       name: "ERC4337BaseAccount",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.ERC4337BaseAccount__factory>;
     getContractFactory(
-      name: "DestinationMinter",
+      name: "DestinationAccountFactoryReceiver",
       signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.DestinationMinter__factory>;
-    getContractFactory(
-      name: "MyNFT",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.MyNFT__factory>;
-    getContractFactory(
-      name: "SourceMinter",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.SourceMinter__factory>;
+    ): Promise<Contracts.DestinationAccountFactoryReceiver__factory>;
     getContractFactory(
       name: "IAccount",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -173,9 +121,9 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IStakeManager__factory>;
     getContractFactory(
-      name: "ProgrammableTokenTransfers",
+      name: "BasicCounter",
       signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.ProgrammableTokenTransfers__factory>;
+    ): Promise<Contracts.BasicCounter__factory>;
     getContractFactory(
       name: "TranseptorAccount",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -272,11 +220,6 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.IERC1967>;
     getContractAt(
-      name: "IERC4906",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.IERC4906>;
-    getContractAt(
       name: "IBeacon",
       address: string,
       signer?: ethers.Signer
@@ -307,75 +250,15 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.UUPSUpgradeable>;
     getContractAt(
-      name: "ERC721",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.ERC721>;
-    getContractAt(
-      name: "ERC721URIStorage",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.ERC721URIStorage>;
-    getContractAt(
-      name: "IERC721Metadata",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.IERC721Metadata>;
-    getContractAt(
-      name: "IERC721",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.IERC721>;
-    getContractAt(
-      name: "IERC721Receiver",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.IERC721Receiver>;
-    getContractAt(
-      name: "ERC165",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.ERC165>;
-    getContractAt(
-      name: "IERC165",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.IERC165>;
-    getContractAt(
-      name: "BasicMessageReceiver",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.BasicMessageReceiver>;
-    getContractAt(
-      name: "BasicMessageSender",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.BasicMessageSender>;
-    getContractAt(
-      name: "BasicTokenSender",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.BasicTokenSender>;
-    getContractAt(
       name: "ERC4337BaseAccount",
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.ERC4337BaseAccount>;
     getContractAt(
-      name: "DestinationMinter",
+      name: "DestinationAccountFactoryReceiver",
       address: string,
       signer?: ethers.Signer
-    ): Promise<Contracts.DestinationMinter>;
-    getContractAt(
-      name: "MyNFT",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.MyNFT>;
-    getContractAt(
-      name: "SourceMinter",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.SourceMinter>;
+    ): Promise<Contracts.DestinationAccountFactoryReceiver>;
     getContractAt(
       name: "IAccount",
       address: string,
@@ -402,10 +285,10 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.IStakeManager>;
     getContractAt(
-      name: "ProgrammableTokenTransfers",
+      name: "BasicCounter",
       address: string,
       signer?: ethers.Signer
-    ): Promise<Contracts.ProgrammableTokenTransfers>;
+    ): Promise<Contracts.BasicCounter>;
     getContractAt(
       name: "TranseptorAccount",
       address: string,

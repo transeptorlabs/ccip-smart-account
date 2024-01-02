@@ -61,46 +61,37 @@ export declare namespace Client {
   };
 }
 
-export interface BasicMessageReceiverInterface extends utils.Interface {
+export interface DestinationAccountFactoryReceiverInterface
+  extends utils.Interface {
   functions: {
-    "acceptOwnership()": FunctionFragment;
     "ccipReceive((bytes32,uint64,bytes,bytes,(address,uint256)[]))": FunctionFragment;
-    "getLatestMessageDetails()": FunctionFragment;
     "getRouter()": FunctionFragment;
     "owner()": FunctionFragment;
+    "renounceOwnership()": FunctionFragment;
     "supportsInterface(bytes4)": FunctionFragment;
     "transferOwnership(address)": FunctionFragment;
-    "withdraw(address)": FunctionFragment;
-    "withdrawToken(address,address)": FunctionFragment;
   };
 
   getFunction(
     nameOrSignatureOrTopic:
-      | "acceptOwnership"
       | "ccipReceive"
-      | "getLatestMessageDetails"
       | "getRouter"
       | "owner"
+      | "renounceOwnership"
       | "supportsInterface"
       | "transferOwnership"
-      | "withdraw"
-      | "withdrawToken"
   ): FunctionFragment;
 
-  encodeFunctionData(
-    functionFragment: "acceptOwnership",
-    values?: undefined
-  ): string;
   encodeFunctionData(
     functionFragment: "ccipReceive",
     values: [Client.Any2EVMMessageStruct]
   ): string;
-  encodeFunctionData(
-    functionFragment: "getLatestMessageDetails",
-    values?: undefined
-  ): string;
   encodeFunctionData(functionFragment: "getRouter", values?: undefined): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "renounceOwnership",
+    values?: undefined
+  ): string;
   encodeFunctionData(
     functionFragment: "supportsInterface",
     values: [PromiseOrValue<BytesLike>]
@@ -109,29 +100,17 @@ export interface BasicMessageReceiverInterface extends utils.Interface {
     functionFragment: "transferOwnership",
     values: [PromiseOrValue<string>]
   ): string;
-  encodeFunctionData(
-    functionFragment: "withdraw",
-    values: [PromiseOrValue<string>]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "withdrawToken",
-    values: [PromiseOrValue<string>, PromiseOrValue<string>]
-  ): string;
 
-  decodeFunctionResult(
-    functionFragment: "acceptOwnership",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(
     functionFragment: "ccipReceive",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(
-    functionFragment: "getLatestMessageDetails",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(functionFragment: "getRouter", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "renounceOwnership",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "supportsInterface",
     data: BytesLike
@@ -140,51 +119,28 @@ export interface BasicMessageReceiverInterface extends utils.Interface {
     functionFragment: "transferOwnership",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "withdraw", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "withdrawToken",
-    data: BytesLike
-  ): Result;
 
   events: {
-    "MessageReceived(bytes32,uint64,address,string)": EventFragment;
-    "OwnershipTransferRequested(address,address)": EventFragment;
+    "CreateCallSuccessfull()": EventFragment;
     "OwnershipTransferred(address,address)": EventFragment;
   };
 
-  getEvent(nameOrSignatureOrTopic: "MessageReceived"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "OwnershipTransferRequested"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "CreateCallSuccessfull"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
 }
 
-export interface MessageReceivedEventObject {
-  latestMessageId: string;
-  latestSourceChainSelector: BigNumber;
-  latestSender: string;
-  latestMessage: string;
-}
-export type MessageReceivedEvent = TypedEvent<
-  [string, BigNumber, string, string],
-  MessageReceivedEventObject
+export interface CreateCallSuccessfullEventObject {}
+export type CreateCallSuccessfullEvent = TypedEvent<
+  [],
+  CreateCallSuccessfullEventObject
 >;
 
-export type MessageReceivedEventFilter = TypedEventFilter<MessageReceivedEvent>;
-
-export interface OwnershipTransferRequestedEventObject {
-  from: string;
-  to: string;
-}
-export type OwnershipTransferRequestedEvent = TypedEvent<
-  [string, string],
-  OwnershipTransferRequestedEventObject
->;
-
-export type OwnershipTransferRequestedEventFilter =
-  TypedEventFilter<OwnershipTransferRequestedEvent>;
+export type CreateCallSuccessfullEventFilter =
+  TypedEventFilter<CreateCallSuccessfullEvent>;
 
 export interface OwnershipTransferredEventObject {
-  from: string;
-  to: string;
+  previousOwner: string;
+  newOwner: string;
 }
 export type OwnershipTransferredEvent = TypedEvent<
   [string, string],
@@ -194,12 +150,12 @@ export type OwnershipTransferredEvent = TypedEvent<
 export type OwnershipTransferredEventFilter =
   TypedEventFilter<OwnershipTransferredEvent>;
 
-export interface BasicMessageReceiver extends BaseContract {
+export interface DestinationAccountFactoryReceiver extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
 
-  interface: BasicMessageReceiverInterface;
+  interface: DestinationAccountFactoryReceiverInterface;
 
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
@@ -221,22 +177,18 @@ export interface BasicMessageReceiver extends BaseContract {
   removeListener: OnEvent<this>;
 
   functions: {
-    acceptOwnership(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
     ccipReceive(
       message: Client.Any2EVMMessageStruct,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
-    getLatestMessageDetails(
-      overrides?: CallOverrides
-    ): Promise<[string, BigNumber, string, string]>;
-
     getRouter(overrides?: CallOverrides): Promise<[string]>;
 
     owner(overrides?: CallOverrides): Promise<[string]>;
+
+    renounceOwnership(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
     supportsInterface(
       interfaceId: PromiseOrValue<BytesLike>,
@@ -244,38 +196,23 @@ export interface BasicMessageReceiver extends BaseContract {
     ): Promise<[boolean]>;
 
     transferOwnership(
-      to: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    withdraw(
-      beneficiary: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    withdrawToken(
-      beneficiary: PromiseOrValue<string>,
-      token: PromiseOrValue<string>,
+      newOwner: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
   };
-
-  acceptOwnership(
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
 
   ccipReceive(
     message: Client.Any2EVMMessageStruct,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
-  getLatestMessageDetails(
-    overrides?: CallOverrides
-  ): Promise<[string, BigNumber, string, string]>;
-
   getRouter(overrides?: CallOverrides): Promise<string>;
 
   owner(overrides?: CallOverrides): Promise<string>;
+
+  renounceOwnership(
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
 
   supportsInterface(
     interfaceId: PromiseOrValue<BytesLike>,
@@ -283,36 +220,21 @@ export interface BasicMessageReceiver extends BaseContract {
   ): Promise<boolean>;
 
   transferOwnership(
-    to: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  withdraw(
-    beneficiary: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  withdrawToken(
-    beneficiary: PromiseOrValue<string>,
-    token: PromiseOrValue<string>,
+    newOwner: PromiseOrValue<string>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
   callStatic: {
-    acceptOwnership(overrides?: CallOverrides): Promise<void>;
-
     ccipReceive(
       message: Client.Any2EVMMessageStruct,
       overrides?: CallOverrides
     ): Promise<void>;
 
-    getLatestMessageDetails(
-      overrides?: CallOverrides
-    ): Promise<[string, BigNumber, string, string]>;
-
     getRouter(overrides?: CallOverrides): Promise<string>;
 
     owner(overrides?: CallOverrides): Promise<string>;
+
+    renounceOwnership(overrides?: CallOverrides): Promise<void>;
 
     supportsInterface(
       interfaceId: PromiseOrValue<BytesLike>,
@@ -320,70 +242,38 @@ export interface BasicMessageReceiver extends BaseContract {
     ): Promise<boolean>;
 
     transferOwnership(
-      to: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    withdraw(
-      beneficiary: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    withdrawToken(
-      beneficiary: PromiseOrValue<string>,
-      token: PromiseOrValue<string>,
+      newOwner: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<void>;
   };
 
   filters: {
-    "MessageReceived(bytes32,uint64,address,string)"(
-      latestMessageId?: null,
-      latestSourceChainSelector?: null,
-      latestSender?: null,
-      latestMessage?: null
-    ): MessageReceivedEventFilter;
-    MessageReceived(
-      latestMessageId?: null,
-      latestSourceChainSelector?: null,
-      latestSender?: null,
-      latestMessage?: null
-    ): MessageReceivedEventFilter;
-
-    "OwnershipTransferRequested(address,address)"(
-      from?: PromiseOrValue<string> | null,
-      to?: PromiseOrValue<string> | null
-    ): OwnershipTransferRequestedEventFilter;
-    OwnershipTransferRequested(
-      from?: PromiseOrValue<string> | null,
-      to?: PromiseOrValue<string> | null
-    ): OwnershipTransferRequestedEventFilter;
+    "CreateCallSuccessfull()"(): CreateCallSuccessfullEventFilter;
+    CreateCallSuccessfull(): CreateCallSuccessfullEventFilter;
 
     "OwnershipTransferred(address,address)"(
-      from?: PromiseOrValue<string> | null,
-      to?: PromiseOrValue<string> | null
+      previousOwner?: PromiseOrValue<string> | null,
+      newOwner?: PromiseOrValue<string> | null
     ): OwnershipTransferredEventFilter;
     OwnershipTransferred(
-      from?: PromiseOrValue<string> | null,
-      to?: PromiseOrValue<string> | null
+      previousOwner?: PromiseOrValue<string> | null,
+      newOwner?: PromiseOrValue<string> | null
     ): OwnershipTransferredEventFilter;
   };
 
   estimateGas: {
-    acceptOwnership(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
     ccipReceive(
       message: Client.Any2EVMMessageStruct,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
-    getLatestMessageDetails(overrides?: CallOverrides): Promise<BigNumber>;
-
     getRouter(overrides?: CallOverrides): Promise<BigNumber>;
 
     owner(overrides?: CallOverrides): Promise<BigNumber>;
+
+    renounceOwnership(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
 
     supportsInterface(
       interfaceId: PromiseOrValue<BytesLike>,
@@ -391,58 +281,32 @@ export interface BasicMessageReceiver extends BaseContract {
     ): Promise<BigNumber>;
 
     transferOwnership(
-      to: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    withdraw(
-      beneficiary: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    withdrawToken(
-      beneficiary: PromiseOrValue<string>,
-      token: PromiseOrValue<string>,
+      newOwner: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
   };
 
   populateTransaction: {
-    acceptOwnership(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
     ccipReceive(
       message: Client.Any2EVMMessageStruct,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    getLatestMessageDetails(
-      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     getRouter(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
+    renounceOwnership(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
     supportsInterface(
       interfaceId: PromiseOrValue<BytesLike>,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     transferOwnership(
-      to: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    withdraw(
-      beneficiary: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    withdrawToken(
-      beneficiary: PromiseOrValue<string>,
-      token: PromiseOrValue<string>,
+      newOwner: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
   };

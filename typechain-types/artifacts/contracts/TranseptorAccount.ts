@@ -106,7 +106,8 @@ export interface TranseptorAccountInterface extends utils.Interface {
   functions: {
     "addDeposit()": FunctionFragment;
     "ccipReceive((bytes32,uint64,bytes,bytes,(address,uint256)[]))": FunctionFragment;
-    "ccipSendMessage(uint64,address,string,address,uint256,uint8)": FunctionFragment;
+    "ccipSendToken(uint64,address,address,uint256,bool,uint8)": FunctionFragment;
+    "ccipSendTokenBatch(uint64,address,(address,uint256)[],bool,uint8)": FunctionFragment;
     "entryPoint()": FunctionFragment;
     "execute(address,uint256,bytes)": FunctionFragment;
     "executeBatch(address[],uint256[],bytes[])": FunctionFragment;
@@ -134,7 +135,8 @@ export interface TranseptorAccountInterface extends utils.Interface {
     nameOrSignatureOrTopic:
       | "addDeposit"
       | "ccipReceive"
-      | "ccipSendMessage"
+      | "ccipSendToken"
+      | "ccipSendTokenBatch"
       | "entryPoint"
       | "execute"
       | "executeBatch"
@@ -167,13 +169,23 @@ export interface TranseptorAccountInterface extends utils.Interface {
     values: [Client.Any2EVMMessageStruct]
   ): string;
   encodeFunctionData(
-    functionFragment: "ccipSendMessage",
+    functionFragment: "ccipSendToken",
     values: [
       PromiseOrValue<BigNumberish>,
       PromiseOrValue<string>,
       PromiseOrValue<string>,
-      PromiseOrValue<string>,
       PromiseOrValue<BigNumberish>,
+      PromiseOrValue<boolean>,
+      PromiseOrValue<BigNumberish>
+    ]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "ccipSendTokenBatch",
+    values: [
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<string>,
+      Client.EVMTokenAmountStruct[],
+      PromiseOrValue<boolean>,
       PromiseOrValue<BigNumberish>
     ]
   ): string;
@@ -271,7 +283,11 @@ export interface TranseptorAccountInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "ccipSendMessage",
+    functionFragment: "ccipSendToken",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "ccipSendTokenBatch",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "entryPoint", data: BytesLike): Result;
@@ -339,8 +355,8 @@ export interface TranseptorAccountInterface extends utils.Interface {
     "AdminChanged(address,address)": EventFragment;
     "BeaconUpgraded(address)": EventFragment;
     "Initialized(uint8)": EventFragment;
-    "MessageReceived(bytes32,uint64,address,string,tuple)": EventFragment;
-    "MessageSent(bytes32,uint64,address,string,tuple,uint256,uint8)": EventFragment;
+    "MessageReceived(bytes32,uint64,address,bytes,tuple[])": EventFragment;
+    "MessageSent(bytes32,uint64,address,bytes,tuple,uint256,uint8)": EventFragment;
     "TranseptorAccountInitialized(address,address,address)": EventFragment;
     "Upgraded(address)": EventFragment;
   };
@@ -388,11 +404,11 @@ export interface MessageReceivedEventObject {
   messageId: string;
   sourceChainSelector: BigNumber;
   sender: string;
-  message: string;
-  tokenAmount: Client.EVMTokenAmountStructOutput;
+  encodedData: string;
+  tokenAmount: Client.EVMTokenAmountStructOutput[];
 }
 export type MessageReceivedEvent = TypedEvent<
-  [string, BigNumber, string, string, Client.EVMTokenAmountStructOutput],
+  [string, BigNumber, string, string, Client.EVMTokenAmountStructOutput[]],
   MessageReceivedEventObject
 >;
 
@@ -402,7 +418,7 @@ export interface MessageSentEventObject {
   messageId: string;
   destinationChainSelector: BigNumber;
   receiver: string;
-  message: string;
+  encodedData: string;
   tokenAmount: Client.EVMTokenAmountStructOutput;
   ccipFee: BigNumber;
   payFeesIn: number;
@@ -478,12 +494,21 @@ export interface TranseptorAccount extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
-    ccipSendMessage(
+    ccipSendToken(
       destinationChainSelector: PromiseOrValue<BigNumberish>,
       receiver: PromiseOrValue<string>,
-      message: PromiseOrValue<string>,
       token: PromiseOrValue<string>,
       amount: PromiseOrValue<BigNumberish>,
+      isEao: PromiseOrValue<boolean>,
+      payFeesIn: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    ccipSendTokenBatch(
+      destinationChainSelector: PromiseOrValue<BigNumberish>,
+      receiver: PromiseOrValue<string>,
+      tokensToSendDetails: Client.EVMTokenAmountStruct[],
+      isEao: PromiseOrValue<boolean>,
       payFeesIn: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
@@ -513,7 +538,7 @@ export interface TranseptorAccount extends BaseContract {
         messageId: string;
         sourceChainSelector: BigNumber;
         sender: string;
-        message: string;
+        encodedData: string;
         token: string;
         amount: BigNumber;
       }
@@ -533,7 +558,7 @@ export interface TranseptorAccount extends BaseContract {
         messageId: string;
         sourceChainSelector: BigNumber;
         sender: string;
-        message: string;
+        encodedData: string;
         token: string;
         amount: BigNumber;
       }
@@ -546,7 +571,7 @@ export interface TranseptorAccount extends BaseContract {
       [BigNumber, string, string, string, BigNumber] & {
         sourceChainSelector: BigNumber;
         sender: string;
-        message: string;
+        encodedData: string;
         token: string;
         amount: BigNumber;
       }
@@ -571,7 +596,7 @@ export interface TranseptorAccount extends BaseContract {
       [BigNumber, string, string, string, BigNumber] & {
         sourceChainSelector: BigNumber;
         sender: string;
-        message: string;
+        encodedData: string;
         token: string;
         amount: BigNumber;
       }
@@ -625,12 +650,21 @@ export interface TranseptorAccount extends BaseContract {
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
-  ccipSendMessage(
+  ccipSendToken(
     destinationChainSelector: PromiseOrValue<BigNumberish>,
     receiver: PromiseOrValue<string>,
-    message: PromiseOrValue<string>,
     token: PromiseOrValue<string>,
     amount: PromiseOrValue<BigNumberish>,
+    isEao: PromiseOrValue<boolean>,
+    payFeesIn: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  ccipSendTokenBatch(
+    destinationChainSelector: PromiseOrValue<BigNumberish>,
+    receiver: PromiseOrValue<string>,
+    tokensToSendDetails: Client.EVMTokenAmountStruct[],
+    isEao: PromiseOrValue<boolean>,
     payFeesIn: PromiseOrValue<BigNumberish>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
@@ -660,7 +694,7 @@ export interface TranseptorAccount extends BaseContract {
       messageId: string;
       sourceChainSelector: BigNumber;
       sender: string;
-      message: string;
+      encodedData: string;
       token: string;
       amount: BigNumber;
     }
@@ -678,7 +712,7 @@ export interface TranseptorAccount extends BaseContract {
       messageId: string;
       sourceChainSelector: BigNumber;
       sender: string;
-      message: string;
+      encodedData: string;
       token: string;
       amount: BigNumber;
     }
@@ -691,7 +725,7 @@ export interface TranseptorAccount extends BaseContract {
     [BigNumber, string, string, string, BigNumber] & {
       sourceChainSelector: BigNumber;
       sender: string;
-      message: string;
+      encodedData: string;
       token: string;
       amount: BigNumber;
     }
@@ -716,7 +750,7 @@ export interface TranseptorAccount extends BaseContract {
     [BigNumber, string, string, string, BigNumber] & {
       sourceChainSelector: BigNumber;
       sender: string;
-      message: string;
+      encodedData: string;
       token: string;
       amount: BigNumber;
     }
@@ -768,12 +802,21 @@ export interface TranseptorAccount extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    ccipSendMessage(
+    ccipSendToken(
       destinationChainSelector: PromiseOrValue<BigNumberish>,
       receiver: PromiseOrValue<string>,
-      message: PromiseOrValue<string>,
       token: PromiseOrValue<string>,
       amount: PromiseOrValue<BigNumberish>,
+      isEao: PromiseOrValue<boolean>,
+      payFeesIn: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<string>;
+
+    ccipSendTokenBatch(
+      destinationChainSelector: PromiseOrValue<BigNumberish>,
+      receiver: PromiseOrValue<string>,
+      tokensToSendDetails: Client.EVMTokenAmountStruct[],
+      isEao: PromiseOrValue<boolean>,
       payFeesIn: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<string>;
@@ -803,7 +846,7 @@ export interface TranseptorAccount extends BaseContract {
         messageId: string;
         sourceChainSelector: BigNumber;
         sender: string;
-        message: string;
+        encodedData: string;
         token: string;
         amount: BigNumber;
       }
@@ -821,7 +864,7 @@ export interface TranseptorAccount extends BaseContract {
         messageId: string;
         sourceChainSelector: BigNumber;
         sender: string;
-        message: string;
+        encodedData: string;
         token: string;
         amount: BigNumber;
       }
@@ -834,7 +877,7 @@ export interface TranseptorAccount extends BaseContract {
       [BigNumber, string, string, string, BigNumber] & {
         sourceChainSelector: BigNumber;
         sender: string;
-        message: string;
+        encodedData: string;
         token: string;
         amount: BigNumber;
       }
@@ -859,7 +902,7 @@ export interface TranseptorAccount extends BaseContract {
       [BigNumber, string, string, string, BigNumber] & {
         sourceChainSelector: BigNumber;
         sender: string;
-        message: string;
+        encodedData: string;
         token: string;
         amount: BigNumber;
       }
@@ -924,26 +967,26 @@ export interface TranseptorAccount extends BaseContract {
     "Initialized(uint8)"(version?: null): InitializedEventFilter;
     Initialized(version?: null): InitializedEventFilter;
 
-    "MessageReceived(bytes32,uint64,address,string,tuple)"(
+    "MessageReceived(bytes32,uint64,address,bytes,tuple[])"(
       messageId?: PromiseOrValue<BytesLike> | null,
       sourceChainSelector?: PromiseOrValue<BigNumberish> | null,
       sender?: null,
-      message?: null,
+      encodedData?: null,
       tokenAmount?: null
     ): MessageReceivedEventFilter;
     MessageReceived(
       messageId?: PromiseOrValue<BytesLike> | null,
       sourceChainSelector?: PromiseOrValue<BigNumberish> | null,
       sender?: null,
-      message?: null,
+      encodedData?: null,
       tokenAmount?: null
     ): MessageReceivedEventFilter;
 
-    "MessageSent(bytes32,uint64,address,string,tuple,uint256,uint8)"(
+    "MessageSent(bytes32,uint64,address,bytes,tuple,uint256,uint8)"(
       messageId?: PromiseOrValue<BytesLike> | null,
       destinationChainSelector?: PromiseOrValue<BigNumberish> | null,
       receiver?: null,
-      message?: null,
+      encodedData?: null,
       tokenAmount?: null,
       ccipFee?: null,
       payFeesIn?: null
@@ -952,7 +995,7 @@ export interface TranseptorAccount extends BaseContract {
       messageId?: PromiseOrValue<BytesLike> | null,
       destinationChainSelector?: PromiseOrValue<BigNumberish> | null,
       receiver?: null,
-      message?: null,
+      encodedData?: null,
       tokenAmount?: null,
       ccipFee?: null,
       payFeesIn?: null
@@ -987,12 +1030,21 @@ export interface TranseptorAccount extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
-    ccipSendMessage(
+    ccipSendToken(
       destinationChainSelector: PromiseOrValue<BigNumberish>,
       receiver: PromiseOrValue<string>,
-      message: PromiseOrValue<string>,
       token: PromiseOrValue<string>,
       amount: PromiseOrValue<BigNumberish>,
+      isEao: PromiseOrValue<boolean>,
+      payFeesIn: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    ccipSendTokenBatch(
+      destinationChainSelector: PromiseOrValue<BigNumberish>,
+      receiver: PromiseOrValue<string>,
+      tokensToSendDetails: Client.EVMTokenAmountStruct[],
+      isEao: PromiseOrValue<boolean>,
       payFeesIn: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
@@ -1099,12 +1151,21 @@ export interface TranseptorAccount extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
-    ccipSendMessage(
+    ccipSendToken(
       destinationChainSelector: PromiseOrValue<BigNumberish>,
       receiver: PromiseOrValue<string>,
-      message: PromiseOrValue<string>,
       token: PromiseOrValue<string>,
       amount: PromiseOrValue<BigNumberish>,
+      isEao: PromiseOrValue<boolean>,
+      payFeesIn: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    ccipSendTokenBatch(
+      destinationChainSelector: PromiseOrValue<BigNumberish>,
+      receiver: PromiseOrValue<string>,
+      tokensToSendDetails: Client.EVMTokenAmountStruct[],
+      isEao: PromiseOrValue<boolean>,
       payFeesIn: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;

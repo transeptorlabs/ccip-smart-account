@@ -31,6 +31,7 @@ contract TranseptorAccount is ERC4337BaseAccount, UUPSUpgradeable, Initializable
     address immutable _link;  // Address of the LINK token contract on source chain
     address public owner; // Owner of the account
     IEntryPoint private immutable _entryPoint; // Entry point contract
+    uint16 immutable _maxTokensLength;
 
    // Used to determine if contract should use LINK or native token for CCIP fee when send token cross chain
     enum PayFeesIn {
@@ -42,7 +43,7 @@ contract TranseptorAccount is ERC4337BaseAccount, UUPSUpgradeable, Initializable
     struct Message {
         uint64 sourceChainSelector;
         address sender;
-        string message; 
+        bytes encodedData;
         address token;
         uint256 amount;
     }
@@ -58,7 +59,7 @@ contract TranseptorAccount is ERC4337BaseAccount, UUPSUpgradeable, Initializable
         bytes32 indexed messageId, // The unique ID of the message.
         uint64 indexed destinationChainSelector, // The chain selector of the destination chain.
         address receiver, // The address of the receiver on the destination chain.
-        string message, // The message being sent.
+        bytes encodedData, // The encoded data sent from source chain to make a call on destination chain.
         Client.EVMTokenAmount tokenAmount, // The token amount that was sent.
         uint256 ccipFee, // The fees paid for sending the message.
         PayFeesIn payFeesIn // The token used to pay the fees.
@@ -69,8 +70,8 @@ contract TranseptorAccount is ERC4337BaseAccount, UUPSUpgradeable, Initializable
         bytes32 indexed messageId, // The unique ID of the message.
         uint64 indexed sourceChainSelector, // The chain selector of the source chain.
         address sender, // The address of the sender from the source chain.
-        string message, // The message that was received.
-        Client.EVMTokenAmount tokenAmount // The token amount that was received.
+        bytes encodedData, // The encoded data sent from source chain to make a call on destination chain.
+        Client.EVMTokenAmount[] tokenAmount // The token amount that was received.
     );
 
     error NoMessageReceived(); // Used when trying to access a message but no messages have been received.
@@ -87,6 +88,7 @@ contract TranseptorAccount is ERC4337BaseAccount, UUPSUpgradeable, Initializable
         _entryPoint = anEntryPoint;
         _router = router;
         _link = link;
+        _maxTokensLength = 5;
         LinkTokenInterface(_link).approve(router, type(uint256).max);
         _disableInitializers();
     }
@@ -171,40 +173,44 @@ contract TranseptorAccount is ERC4337BaseAccount, UUPSUpgradeable, Initializable
     }
 
     /**
-     * @dev Send a CCIP message: Sends data and token to receiver on the destination chain.
+     * @dev Send a CCIP message: Sends a token to receiver on the destination chain.
      * @param destinationChainSelector Destination chain selector
-     * @param receiver Receiver address
-     * @param message The string message to be sent.
+     * @param receiver Receiver address. The receiver can be a smart contract or an EAO.
      * @param token token address.
      * @param amount token amount.
+     * @param isEao true if receiver is an EAO
      * @param payFeesIn Pay fees in LINK or native token on source chain
      * @return messageId The ID of the message that was sent.
      */
-    function ccipSendMessage(
+    function ccipSendToken(
         uint64 destinationChainSelector,
         address receiver,
-        string calldata message,
         address token,
         uint256 amount,
+        bool isEao,
         PayFeesIn payFeesIn
-    ) external  returns (bytes32 messageId) {
-
-        // transfer token to this contract and approve them th ccip router, if not approved already it will fail
+    ) external returns (bytes32 messageId) {
         IERC20(token).transferFrom(
             msg.sender,
             address(this),
             amount
         );
         
-        // we do not need to approve link to router contract as we already sent a max approval in the constructor
         if (token != _link) {
+            // We do not need to approve link to router contract as we already sent a max approval in the constructor
             IERC20(token).approve(
                 _router,
                 amount
             );
         }
     
-       // set the tokent amounts
+        // Create an EVM2AnyMessage struct in memory with necessary information for sending a cross-chain message
+        uint256 ccipGaslimt = 200_000;
+        if (isEao) {
+            // for transfers to EOA gas limit is 0
+            ccipGaslimt = 0;
+        }
+
         Client.EVMTokenAmount[] memory tokenAmounts = new Client.EVMTokenAmount[](1);
         Client.EVMTokenAmount memory tokenAmount = Client.EVMTokenAmount({
             token: token,
@@ -212,13 +218,12 @@ contract TranseptorAccount is ERC4337BaseAccount, UUPSUpgradeable, Initializable
         });
         tokenAmounts[0] = tokenAmount;
 
-        // Create an EVM2AnyMessage struct in memory with necessary information for sending a cross-chain message
         Client.EVM2AnyMessage memory evm2AnyMessage = Client.EVM2AnyMessage({
             receiver: abi.encode(receiver), // ABI-encoded receiver address
-            data: abi.encode(message), // ABI-encoded string message
+            data: "", // no data
             tokenAmounts: tokenAmounts, // Tokens amounts
             extraArgs: Client._argsToBytes(
-                Client.EVMExtraArgsV1({gasLimit: 200_000, strict: false}) // Additional arguments, setting gas limit and non-strict sequency mode
+                Client.EVMExtraArgsV1({gasLimit: ccipGaslimt, strict: false}) // Additional arguments, setting gas limit and non-strict sequency mode
             ),
             feeToken: payFeesIn == PayFeesIn.LINK ? _link : address(0)
         });
@@ -246,11 +251,108 @@ contract TranseptorAccount is ERC4337BaseAccount, UUPSUpgradeable, Initializable
             messageId,
             destinationChainSelector,
             receiver,
-            message,
-            tokenAmount,
+            "",
+            tokenAmounts[0],
             fee,
             payFeesIn
         );
+           
+        // Return the message ID
+        return messageId;
+    }
+
+    /**
+     * @dev Send a CCIP message: Sends a token to receiver on the destination chain.
+     * @param destinationChainSelector Destination chain selector
+     * @param receiver Receiver address. The receiver can be a smart contract or an EAO.
+     * @param tokensToSendDetails Array of token details to send
+     * @param isEao true if receiver is an EAO
+     * @param payFeesIn Pay fees in LINK or native token on source chain
+     * @return messageId The ID of the message that was sent.
+     */
+    function ccipSendTokenBatch(
+        uint64 destinationChainSelector,
+        address receiver,
+        Client.EVMTokenAmount[] memory tokensToSendDetails,
+        bool isEao,
+        PayFeesIn payFeesIn
+    ) external returns (bytes32 messageId) {
+        uint256 length = tokensToSendDetails.length;
+        require(
+            length <= _maxTokensLength,
+            "Maximum 5 different tokens can be sent per CCIP Message"
+        );
+
+        for (uint256 i = 0; i < length; ) {
+            IERC20(tokensToSendDetails[i].token).transferFrom(
+                msg.sender,
+                address(this),
+                tokensToSendDetails[i].amount
+            );
+       
+            if (tokensToSendDetails[i].token != _link) {
+            // We do not need to approve link to router contract as we already sent a max approval in the constructor
+            IERC20(tokensToSendDetails[i].token).approve(
+                _router,
+                tokensToSendDetails[i].amount
+            );
+        }
+
+            unchecked {
+                ++i;
+            }
+        }
+        
+        // Create an EVM2AnyMessage struct in memory with necessary information for sending a cross-chain message
+        uint256 ccipGaslimt = 200_000;
+        if (isEao) {
+            // for transfers to EOA gas limit is 0
+            ccipGaslimt = 0;
+        }
+
+        Client.EVM2AnyMessage memory evm2AnyMessage = Client.EVM2AnyMessage({
+            receiver: abi.encode(receiver), // ABI-encoded receiver address
+            data: "", // no data
+            tokenAmounts: tokensToSendDetails,
+            extraArgs: Client._argsToBytes(
+                Client.EVMExtraArgsV1({gasLimit: ccipGaslimt, strict: false}) // Additional arguments, setting gas limit and non-strict sequency mode
+            ),
+            feeToken: payFeesIn == PayFeesIn.LINK ? _link : address(0)
+        });
+
+        uint256 fee = IRouterClient(_router).getFee(
+            destinationChainSelector,
+            evm2AnyMessage
+        );
+
+        if (payFeesIn == PayFeesIn.LINK) {
+            // We sent a max approval to the router contract in the constructor, so no need to approve LINK here just send ccip message to router
+            messageId = IRouterClient(_router).ccipSend(
+                destinationChainSelector,
+                evm2AnyMessage
+            );
+        } else {
+            //  Send native token to router contract, no need to approve
+            messageId = IRouterClient(_router).ccipSend{value: fee}(
+                destinationChainSelector,
+                evm2AnyMessage
+            );
+        }
+
+        for (uint256 i = 0; i < length; ) {
+            emit MessageSent(
+                messageId,
+                destinationChainSelector,
+                receiver,
+                "",
+                tokensToSendDetails[i],
+                fee,
+                payFeesIn
+            );
+            unchecked {
+                ++i;
+            }
+        }
            
         // Return the message ID
         return messageId;
@@ -281,7 +383,7 @@ contract TranseptorAccount is ERC4337BaseAccount, UUPSUpgradeable, Initializable
       * @param messageId The ID of the message whose details are to be fetched.
       * @return sourceChainSelector The source chain identifier (aka selector).
       * @return sender The address of the sender.
-      * @return message The received message.
+      * @return encodedData The encoded data.
       * @return token The received token.
       * @return amount The received token amount.
     */
@@ -293,7 +395,7 @@ contract TranseptorAccount is ERC4337BaseAccount, UUPSUpgradeable, Initializable
         returns (
             uint64 sourceChainSelector,
             address sender,
-            string memory message,
+            bytes memory encodedData,
             address token,
             uint256 amount
         )
@@ -303,20 +405,20 @@ contract TranseptorAccount is ERC4337BaseAccount, UUPSUpgradeable, Initializable
         return (
             detail.sourceChainSelector,
             detail.sender,
-            detail.message,
+            detail.encodedData,
             detail.token,
             detail.amount
         );
     }
 
-     /**
+    /**
       * @notice Fetches details of a received message by its position in the received messages list.
       * @dev Reverts if the index is out of bounds.
       * @param index The position in the list of received messages.
       * @return messageId The ID of the message.
       * @return sourceChainSelector The source chain identifier (aka selector).
       * @return sender The address of the sender.
-      * @return message The received message.
+      * @return encodedData The encoded data.
       * @return token The received token.
       * @return amount The received token amount.
     */
@@ -329,7 +431,7 @@ contract TranseptorAccount is ERC4337BaseAccount, UUPSUpgradeable, Initializable
             bytes32 messageId,
             uint64 sourceChainSelector,
             address sender,
-            string memory message,
+            bytes memory encodedData,
             address token,
             uint256 amount
         )
@@ -342,7 +444,7 @@ contract TranseptorAccount is ERC4337BaseAccount, UUPSUpgradeable, Initializable
             messageId,
             detail.sourceChainSelector,
             detail.sender,
-            detail.message,
+            detail.encodedData,
             detail.token,
             detail.amount
         );
@@ -354,9 +456,9 @@ contract TranseptorAccount is ERC4337BaseAccount, UUPSUpgradeable, Initializable
       * @return messageId The ID of the last received message.
       * @return sourceChainSelector The source chain identifier (aka selector) of the last received message.
       * @return sender The address of the sender of the last received message.
-      * @return message The last received message.
-      * @return token The last transferred token.
-      * @return amount The last transferred token amount.
+      * @return encodedData The encoded data.
+      * @return token The received token.
+      * @return amount The received token amount.
     */
     function getLastReceivedMessageDetails()
         external
@@ -365,7 +467,7 @@ contract TranseptorAccount is ERC4337BaseAccount, UUPSUpgradeable, Initializable
             bytes32 messageId,
             uint64 sourceChainSelector,
             address sender,
-            string memory message,
+            bytes memory encodedData,
             address token,
             uint256 amount
         )
@@ -383,7 +485,7 @@ contract TranseptorAccount is ERC4337BaseAccount, UUPSUpgradeable, Initializable
             messageId,
             detail.sourceChainSelector,
             detail.sender,
-            detail.message,
+            detail.encodedData,
             detail.token,
             detail.amount
         );
@@ -395,31 +497,39 @@ contract TranseptorAccount is ERC4337BaseAccount, UUPSUpgradeable, Initializable
     */
 
     /**
-     * @dev CCIPReceiver callback
+     * @dev CCIPReceiver callback function will be called when a CCIP message is received
      * @param any2EvmMessage CCIP message
      */
     function _ccipReceive(
         Client.Any2EVMMessage memory any2EvmMessage
     ) internal override {
-        bytes32 messageId = any2EvmMessage.messageId; // fetch the messageId
+        // Decode the ccip message
+        bytes32 messageId = any2EvmMessage.messageId;
         uint64 sourceChainSelector = any2EvmMessage.sourceChainSelector;
         address sender = abi.decode(any2EvmMessage.sender, (address));
-        string memory message = abi.decode(any2EvmMessage.data, (string));
-
-        //  Get the token and amount from the message
         Client.EVMTokenAmount[] memory tokenAmounts = any2EvmMessage.destTokenAmounts;
-        address token = tokenAmounts[0].token; // we expect one token to be transfered at once but of course, you can transfer several tokens.
-        uint256 amount = tokenAmounts[0].amount; // we expect one token to be transfered at once but of course, you can transfer several tokens.
+        
+        // Decode the parameters from the encoded data and call the function
+        if (any2EvmMessage.data.length > 0) {
+            require(sender == owner, "ccip message sender: not Owner");
 
+            (address decodedDest, uint256 decodedValue, bytes memory decodedFunc) = abi.decode(any2EvmMessage.data, (address, uint256, bytes));
+            (bool success, bytes memory result) = address(decodedDest).call{value : decodedValue}(decodedFunc);
+            if (!success) {
+                assembly {
+                    revert(add(result, 32), mload(result))
+                }
+            }
+        }
+
+        // Update state variables
         Message memory detail = Message(
             sourceChainSelector,
             sender,
-            message,
-            token,
-            amount
+            any2EvmMessage.data,
+            tokenAmounts[0].token,
+            tokenAmounts[0].amount
         );
-
-        // Update state variables
         messageDetail[messageId] = detail;
         receivedMessages.push(messageId);
 
@@ -427,11 +537,10 @@ contract TranseptorAccount is ERC4337BaseAccount, UUPSUpgradeable, Initializable
             messageId,
             sourceChainSelector,
             sender,
-            message,
-            tokenAmounts[0]
+            any2EvmMessage.data,
+            tokenAmounts
         );
     }
-
 
     /**
      * @dev Modifier to restrict access to the owner

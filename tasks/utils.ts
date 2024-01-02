@@ -1,4 +1,4 @@
-import { CCIP_BnM_ADDRESSES, CCIP_LnM_ADDRESSES, PayFeesIn, routerConfig, ERC_4337_ENTRYPOINT_ADDRESSES, ERC_4337_ACCOUNT_FACTORY_ADDRESSES } from "./constants";
+import { CCIP_BnM_ADDRESSES, CCIP_LnM_ADDRESSES, PayFeesIn, routerConfig, ERC_4337_ENTRYPOINT_ADDRESSES, ERC_4337_ACCOUNT_FACTORY_ADDRESSES, LINK_ADDRESSES, ERC_4337_ACCOUNT_FACTORY_RECEVIER_ADDRESSES } from "./constants";
 
 export const getProviderRpcUrl = (network: string) => {
     let rpcUrl;
@@ -95,4 +95,12 @@ export const getEntryPointAddess = (network: string) => {
 
 export const getTranseptorAccontFactoyAddess = (network: string) => {
     return ERC_4337_ACCOUNT_FACTORY_ADDRESSES[network];
+}
+
+export const getTranseptorAccontFactoyReceiverAddess = (network: string) => {
+    return ERC_4337_ACCOUNT_FACTORY_RECEVIER_ADDRESSES[network];
+}
+
+export const getLinkTokenAddress = (network: string) => {
+    return LINK_ADDRESSES[network];
 }

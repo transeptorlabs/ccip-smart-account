@@ -85,3 +85,10 @@ export const ERC_4337_ACCOUNT_FACTORY_ADDRESSES: AddressMap = {
     [`arbitrumTestnet`]: ``,
     [`avalancheFuji`]: ``
 }
+
+export const ERC_4337_ACCOUNT_FACTORY_RECEVIER_ADDRESSES: AddressMap = {
+    [`polygonMumbai`]: ``,
+    [`optimismGoerli`]: ``,
+    [`arbitrumTestnet`]: ``,
+    [`avalancheFuji`]: ``
+}
