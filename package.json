@@ -1,7 +1,10 @@
 {
-  "name": "ccip-starter-kit-hardhat",
+  "name": "transeptor-ccip-smart-account",
   "scripts": {
     "generateTypes": "typechain --target ethers-v5 --out-dir typechain-types './abi/*.json'"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^4.2.0"
   },
   "devDependencies": {
     "@chainlink/contracts": "^0.6.1",
