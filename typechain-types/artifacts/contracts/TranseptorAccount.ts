@@ -111,6 +111,8 @@ export interface TranseptorAccountInterface extends utils.Interface {
     "entryPoint()": FunctionFragment;
     "execute(address,uint256,bytes)": FunctionFragment;
     "executeBatch(address[],uint256[],bytes[])": FunctionFragment;
+    "getCcipTokenTransferBatchFee(uint64,address,(address,uint256)[],bool,uint8)": FunctionFragment;
+    "getCcipTokenTransferFee(uint64,address,address,uint256,bool,uint8)": FunctionFragment;
     "getDeposit()": FunctionFragment;
     "getLastReceivedMessageDetails()": FunctionFragment;
     "getNonce()": FunctionFragment;
@@ -128,7 +130,9 @@ export interface TranseptorAccountInterface extends utils.Interface {
     "upgradeTo(address)": FunctionFragment;
     "upgradeToAndCall(address,bytes)": FunctionFragment;
     "validateUserOp((address,uint256,bytes,bytes,uint256,uint256,uint256,uint256,uint256,bytes,bytes),bytes32,uint256)": FunctionFragment;
+    "withdraw(address)": FunctionFragment;
     "withdrawDepositTo(address,uint256)": FunctionFragment;
+    "withdrawToken(address,address)": FunctionFragment;
   };
 
   getFunction(
@@ -140,6 +144,8 @@ export interface TranseptorAccountInterface extends utils.Interface {
       | "entryPoint"
       | "execute"
       | "executeBatch"
+      | "getCcipTokenTransferBatchFee"
+      | "getCcipTokenTransferFee"
       | "getDeposit"
       | "getLastReceivedMessageDetails"
       | "getNonce"
@@ -157,7 +163,9 @@ export interface TranseptorAccountInterface extends utils.Interface {
       | "upgradeTo"
       | "upgradeToAndCall"
       | "validateUserOp"
+      | "withdraw"
       | "withdrawDepositTo"
+      | "withdrawToken"
   ): FunctionFragment;
 
   encodeFunctionData(
@@ -207,6 +215,27 @@ export interface TranseptorAccountInterface extends utils.Interface {
       PromiseOrValue<string>[],
       PromiseOrValue<BigNumberish>[],
       PromiseOrValue<BytesLike>[]
+    ]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getCcipTokenTransferBatchFee",
+    values: [
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<string>,
+      Client.EVMTokenAmountStruct[],
+      PromiseOrValue<boolean>,
+      PromiseOrValue<BigNumberish>
+    ]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getCcipTokenTransferFee",
+    values: [
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<string>,
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<boolean>,
+      PromiseOrValue<BigNumberish>
     ]
   ): string;
   encodeFunctionData(
@@ -273,8 +302,16 @@ export interface TranseptorAccountInterface extends utils.Interface {
     ]
   ): string;
   encodeFunctionData(
+    functionFragment: "withdraw",
+    values: [PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
     functionFragment: "withdrawDepositTo",
     values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "withdrawToken",
+    values: [PromiseOrValue<string>, PromiseOrValue<string>]
   ): string;
 
   decodeFunctionResult(functionFragment: "addDeposit", data: BytesLike): Result;
@@ -294,6 +331,14 @@ export interface TranseptorAccountInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "execute", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "executeBatch",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getCcipTokenTransferBatchFee",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getCcipTokenTransferFee",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "getDeposit", data: BytesLike): Result;
@@ -346,8 +391,13 @@ export interface TranseptorAccountInterface extends utils.Interface {
     functionFragment: "validateUserOp",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "withdraw", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "withdrawDepositTo",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "withdrawToken",
     data: BytesLike
   ): Result;
 
@@ -529,6 +579,25 @@ export interface TranseptorAccount extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
+    getCcipTokenTransferBatchFee(
+      destinationChainSelector: PromiseOrValue<BigNumberish>,
+      receiver: PromiseOrValue<string>,
+      tokensToSendDetails: Client.EVMTokenAmountStruct[],
+      isEao: PromiseOrValue<boolean>,
+      payFeesIn: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber] & { fee: BigNumber }>;
+
+    getCcipTokenTransferFee(
+      destinationChainSelector: PromiseOrValue<BigNumberish>,
+      receiver: PromiseOrValue<string>,
+      token: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      isEao: PromiseOrValue<boolean>,
+      payFeesIn: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber] & { fee: BigNumber }>;
+
     getDeposit(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     getLastReceivedMessageDetails(
@@ -634,9 +703,20 @@ export interface TranseptorAccount extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
+    withdraw(
+      beneficiary: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
     withdrawDepositTo(
       withdrawAddress: PromiseOrValue<string>,
       amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    withdrawToken(
+      beneficiary: PromiseOrValue<string>,
+      token: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
   };
@@ -684,6 +764,25 @@ export interface TranseptorAccount extends BaseContract {
     func: PromiseOrValue<BytesLike>[],
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
+
+  getCcipTokenTransferBatchFee(
+    destinationChainSelector: PromiseOrValue<BigNumberish>,
+    receiver: PromiseOrValue<string>,
+    tokensToSendDetails: Client.EVMTokenAmountStruct[],
+    isEao: PromiseOrValue<boolean>,
+    payFeesIn: PromiseOrValue<BigNumberish>,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  getCcipTokenTransferFee(
+    destinationChainSelector: PromiseOrValue<BigNumberish>,
+    receiver: PromiseOrValue<string>,
+    token: PromiseOrValue<string>,
+    amount: PromiseOrValue<BigNumberish>,
+    isEao: PromiseOrValue<boolean>,
+    payFeesIn: PromiseOrValue<BigNumberish>,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
 
   getDeposit(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -788,9 +887,20 @@ export interface TranseptorAccount extends BaseContract {
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
+  withdraw(
+    beneficiary: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
   withdrawDepositTo(
     withdrawAddress: PromiseOrValue<string>,
     amount: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  withdrawToken(
+    beneficiary: PromiseOrValue<string>,
+    token: PromiseOrValue<string>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
@@ -836,6 +946,25 @@ export interface TranseptorAccount extends BaseContract {
       func: PromiseOrValue<BytesLike>[],
       overrides?: CallOverrides
     ): Promise<void>;
+
+    getCcipTokenTransferBatchFee(
+      destinationChainSelector: PromiseOrValue<BigNumberish>,
+      receiver: PromiseOrValue<string>,
+      tokensToSendDetails: Client.EVMTokenAmountStruct[],
+      isEao: PromiseOrValue<boolean>,
+      payFeesIn: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getCcipTokenTransferFee(
+      destinationChainSelector: PromiseOrValue<BigNumberish>,
+      receiver: PromiseOrValue<string>,
+      token: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      isEao: PromiseOrValue<boolean>,
+      payFeesIn: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     getDeposit(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -940,9 +1069,20 @@ export interface TranseptorAccount extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    withdraw(
+      beneficiary: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
     withdrawDepositTo(
       withdrawAddress: PromiseOrValue<string>,
       amount: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    withdrawToken(
+      beneficiary: PromiseOrValue<string>,
+      token: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<void>;
   };
@@ -1065,6 +1205,25 @@ export interface TranseptorAccount extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
+    getCcipTokenTransferBatchFee(
+      destinationChainSelector: PromiseOrValue<BigNumberish>,
+      receiver: PromiseOrValue<string>,
+      tokensToSendDetails: Client.EVMTokenAmountStruct[],
+      isEao: PromiseOrValue<boolean>,
+      payFeesIn: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getCcipTokenTransferFee(
+      destinationChainSelector: PromiseOrValue<BigNumberish>,
+      receiver: PromiseOrValue<string>,
+      token: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      isEao: PromiseOrValue<boolean>,
+      payFeesIn: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     getDeposit(overrides?: CallOverrides): Promise<BigNumber>;
 
     getLastReceivedMessageDetails(
@@ -1134,9 +1293,20 @@ export interface TranseptorAccount extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
+    withdraw(
+      beneficiary: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
     withdrawDepositTo(
       withdrawAddress: PromiseOrValue<string>,
       amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    withdrawToken(
+      beneficiary: PromiseOrValue<string>,
+      token: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
   };
@@ -1184,6 +1354,25 @@ export interface TranseptorAccount extends BaseContract {
       value: PromiseOrValue<BigNumberish>[],
       func: PromiseOrValue<BytesLike>[],
       overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    getCcipTokenTransferBatchFee(
+      destinationChainSelector: PromiseOrValue<BigNumberish>,
+      receiver: PromiseOrValue<string>,
+      tokensToSendDetails: Client.EVMTokenAmountStruct[],
+      isEao: PromiseOrValue<boolean>,
+      payFeesIn: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getCcipTokenTransferFee(
+      destinationChainSelector: PromiseOrValue<BigNumberish>,
+      receiver: PromiseOrValue<string>,
+      token: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      isEao: PromiseOrValue<boolean>,
+      payFeesIn: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     getDeposit(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -1257,9 +1446,20 @@ export interface TranseptorAccount extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
+    withdraw(
+      beneficiary: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
     withdrawDepositTo(
       withdrawAddress: PromiseOrValue<string>,
       amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    withdrawToken(
+      beneficiary: PromiseOrValue<string>,
+      token: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
   };

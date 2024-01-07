@@ -3,8 +3,8 @@
 /* eslint-disable */
 export * as core from "./core";
 export * as interfaces from "./interfaces";
+export * as lib from "./lib";
 export * as test from "./test";
-export * as utils from "./utils";
 export { DestinationAccountFactoryReceiver__factory } from "./DestinationAccountFactoryReceiver__factory";
 export { TranseptorAccount__factory } from "./TranseptorAccount__factory";
 export { TranseptorAccountFactory__factory } from "./TranseptorAccountFactory__factory";

@@ -1,13 +1,13 @@
 import { task } from "hardhat/config";
 import { HardhatRuntimeEnvironment, TaskArguments } from "hardhat/types";
-import { getPrivateKey, getProviderRpcUrl, getRouterConfig, getEntryPointAddess, getLinkTokenAddress, getTranseptorAccontFactoyAddess, getTranseptorAccontFactoyReceiverAddess, getPayFeesIn } from "./utils";
+import { getPrivateKey, getProviderRpcUrl, getRouterConfig, getEntryPointAddess, getLinkTokenAddress, getTranseptorAccontFactoyAddess, getTranseptorAccountFactoyReceiverAddess, getPayFeesIn } from "./utils";
 import { Wallet, providers, utils, constants  } from "ethers";
 import { IRouterClient, IRouterClient__factory, IERC20, IERC20__factory, TranseptorAccountFactory__factory, TranseptorAccountFactory,  } from "../typechain-types";
 import { Spinner } from "../utils/spinner";
 import { getCcipMessageId } from "./helpers";
 import { PayFeesIn } from "./constants";
 
-task(`ccip-smart-account-deploy`, `Sends a ccip message to execute a transeptor account factory on destination chain to create a smart account`)
+task(`ccip-smart-account-deploy`, `Sends a ccip message to DestinationAccountFactoryReceiver to create a smart account on a destination chain`)
     .addParam(`destinationBlockchain`, `The name of the destination blockchain (for example polygonMumbai)`)
     .addParam(`owner`, `EOA owner of the smart account on the destination chain`)
     .addParam(`salt`, `unit256 salt for the smart account on the destination chain`)
@@ -39,11 +39,19 @@ task(`ccip-smart-account-deploy`, `Sends a ccip message to execute a transeptor 
       const targetChainSelector = getRouterConfig(destinationBlockchain).chainSelector;
       const router: IRouterClient = IRouterClient__factory.connect(routerAddress, signer);
 
-      // get accout factory address
+      // get accout factory and account factory receiver addresses
       const destAccountFactoryAddress = getTranseptorAccontFactoyAddess(destinationBlockchain);
-      const destAccountFactoryAddressReceiverAddress = getTranseptorAccontFactoyReceiverAddess(destinationBlockchain);
+      const destAccountFactoryAddressReceiverAddress = getTranseptorAccountFactoyReceiverAddess(destinationBlockchain);
 
-      // create CCIP message
+      if (destAccountFactoryAddress === '' ) {
+        throw new Error(`Account factory address for the ${destinationBlockchain} blockchain is not deployed`);
+      }
+
+      if (destAccountFactoryAddressReceiverAddress === '' ) {
+        throw new Error(`Account factory receiver address for the ${destinationBlockchain} blockchain is not deployed`);
+      }
+
+      // create CCIP message to create a smart account on the destination chain by encoding the function call for the createAccount method
       const feeIn: PayFeesIn = getPayFeesIn(payFeesIn);
 
       const gasLimitValue = taskArguments.gasLimit ? taskArguments.gasLimit : 200_000;

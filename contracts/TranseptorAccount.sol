@@ -16,6 +16,7 @@ import {Client} from "@chainlink/contracts-ccip/src/v0.8/ccip/libraries/Client.s
 import {LinkTokenInterface} from "@chainlink/contracts/src/v0.8/interfaces/LinkTokenInterface.sol";
 import {IRouterClient} from "@chainlink/contracts-ccip/src/v0.8/ccip/interfaces/IRouterClient.sol";
 import {IERC20} from "@chainlink/contracts-ccip/src/v0.8/vendor/openzeppelin-solidity/v4.8.0/token/ERC20/IERC20.sol";
+import { CcipFeeLib } from "./lib/CcipFeeLib.sol";
 
 /**
  * @title TranseptorAccount
@@ -32,12 +33,6 @@ contract TranseptorAccount is ERC4337BaseAccount, UUPSUpgradeable, Initializable
     address public owner; // Owner of the account
     IEntryPoint private immutable _entryPoint; // Entry point contract
     uint16 immutable _maxTokensLength;
-
-   // Used to determine if contract should use LINK or native token for CCIP fee when send token cross chain
-    enum PayFeesIn {
-        Native,
-        LINK
-    }
 
     // Struct to hold details of a CCIP message.
     struct Message {
@@ -62,7 +57,7 @@ contract TranseptorAccount is ERC4337BaseAccount, UUPSUpgradeable, Initializable
         bytes encodedData, // The encoded data sent from source chain to make a call on destination chain.
         Client.EVMTokenAmount tokenAmount, // The token amount that was sent.
         uint256 ccipFee, // The fees paid for sending the message.
-        PayFeesIn payFeesIn // The token used to pay the fees.
+        CcipFeeLib.PayFeesIn payFeesIn // The token used to pay the fees.
     );
 
     // Event emitted when CCIP message is received
@@ -77,7 +72,9 @@ contract TranseptorAccount is ERC4337BaseAccount, UUPSUpgradeable, Initializable
     error NoMessageReceived(); // Used when trying to access a message but no messages have been received.
     error IndexOutOfBound(uint256 providedIndex, uint256 maxIndex); // Used when the provided index is out of bounds.
     error MessageIdNotExist(bytes32 messageId); // Used when the provided message ID does not exist.
-
+    error NothingToWithdraw(); // Used when trying to withdraw Ether but there's nothing to withdraw.
+    error FailedToWithdrawEth(address owner, address target, uint256 value); // Used when the withdrawal of Ether fails.
+    
     /**
      * @dev Constructor to initialize TranseptorAccount with an entry point and cci router
      * @param anEntryPoint Address of the erc-4337 entry point contract on source chain
@@ -188,8 +185,10 @@ contract TranseptorAccount is ERC4337BaseAccount, UUPSUpgradeable, Initializable
         address token,
         uint256 amount,
         bool isEao,
-        PayFeesIn payFeesIn
+        CcipFeeLib.PayFeesIn payFeesIn
     ) external returns (bytes32 messageId) {
+        _requireFromEntryPointOrOwner();
+
         IERC20(token).transferFrom(
             msg.sender,
             address(this),
@@ -225,7 +224,7 @@ contract TranseptorAccount is ERC4337BaseAccount, UUPSUpgradeable, Initializable
             extraArgs: Client._argsToBytes(
                 Client.EVMExtraArgsV1({gasLimit: ccipGaslimt, strict: false}) // Additional arguments, setting gas limit and non-strict sequency mode
             ),
-            feeToken: payFeesIn == PayFeesIn.LINK ? _link : address(0)
+            feeToken: payFeesIn == CcipFeeLib.PayFeesIn.LINK ? _link : address(0)
         });
 
         uint256 fee = IRouterClient(_router).getFee(
@@ -233,7 +232,7 @@ contract TranseptorAccount is ERC4337BaseAccount, UUPSUpgradeable, Initializable
             evm2AnyMessage
         );
 
-        if (payFeesIn == PayFeesIn.LINK) {
+        if (payFeesIn == CcipFeeLib.PayFeesIn.LINK) {
             // We sent a max approval to the router contract in the constructor, so no need to approve LINK here just send ccip message to router
             messageId = IRouterClient(_router).ccipSend(
                 destinationChainSelector,
@@ -262,7 +261,7 @@ contract TranseptorAccount is ERC4337BaseAccount, UUPSUpgradeable, Initializable
     }
 
     /**
-     * @dev Send a CCIP message: Sends a token to receiver on the destination chain.
+     * @dev Send a CCIP message: Sends a batch token to receiver on the destination chain.
      * @param destinationChainSelector Destination chain selector
      * @param receiver Receiver address. The receiver can be a smart contract or an EAO.
      * @param tokensToSendDetails Array of token details to send
@@ -275,8 +274,10 @@ contract TranseptorAccount is ERC4337BaseAccount, UUPSUpgradeable, Initializable
         address receiver,
         Client.EVMTokenAmount[] memory tokensToSendDetails,
         bool isEao,
-        PayFeesIn payFeesIn
+        CcipFeeLib.PayFeesIn payFeesIn
     ) external returns (bytes32 messageId) {
+        _requireFromEntryPointOrOwner();
+
         uint256 length = tokensToSendDetails.length;
         require(
             length <= _maxTokensLength,
@@ -317,7 +318,7 @@ contract TranseptorAccount is ERC4337BaseAccount, UUPSUpgradeable, Initializable
             extraArgs: Client._argsToBytes(
                 Client.EVMExtraArgsV1({gasLimit: ccipGaslimt, strict: false}) // Additional arguments, setting gas limit and non-strict sequency mode
             ),
-            feeToken: payFeesIn == PayFeesIn.LINK ? _link : address(0)
+            feeToken: payFeesIn == CcipFeeLib.PayFeesIn.LINK ? _link : address(0)
         });
 
         uint256 fee = IRouterClient(_router).getFee(
@@ -325,7 +326,7 @@ contract TranseptorAccount is ERC4337BaseAccount, UUPSUpgradeable, Initializable
             evm2AnyMessage
         );
 
-        if (payFeesIn == PayFeesIn.LINK) {
+        if (payFeesIn == CcipFeeLib.PayFeesIn.LINK) {
             // We sent a max approval to the router contract in the constructor, so no need to approve LINK here just send ccip message to router
             messageId = IRouterClient(_router).ccipSend(
                 destinationChainSelector,
@@ -356,6 +357,64 @@ contract TranseptorAccount is ERC4337BaseAccount, UUPSUpgradeable, Initializable
            
         // Return the message ID
         return messageId;
+    }
+
+    /**
+     * @dev Get the CCIP fee for sending tokens
+     * @param destinationChainSelector Destination chain selector
+     * @param receiver Receiver address. The receiver can be a smart contract or an EAO.
+     * @param token token address.
+     * @param amount token amount.
+     * @param isEao true if receiver is an EAO
+     * @param payFeesIn Pay fees in LINK or native token on source chain
+     * @return fee The ccip fee for sending tokens
+     */
+    function getCcipTokenTransferFee(
+        uint64 destinationChainSelector,
+        address receiver,
+        address token,
+        uint256 amount,
+        bool isEao,
+        CcipFeeLib.PayFeesIn payFeesIn
+    ) external view returns (uint256 fee) {
+        return CcipFeeLib.getCcipTokenTransferFee(
+            destinationChainSelector, 
+            receiver, 
+            token, 
+            amount, 
+            isEao, 
+            _router,
+            _link, 
+            payFeesIn
+        );
+    }
+
+    /**
+     * @dev Get the CCIP fee for sending batch tokens
+     * @param destinationChainSelector Destination chain selector
+     * @param receiver Receiver address. The receiver can be a smart contract or an EAO.
+     * @param tokensToSendDetails Array of token details to send
+     * @param isEao true if receiver is an EAO
+     * @param payFeesIn Pay fees in LINK or native token on source chain
+     * @return fee The ccip fee for sending tokens
+     */
+    function getCcipTokenTransferBatchFee(
+        uint64 destinationChainSelector,
+        address receiver,
+        Client.EVMTokenAmount[] memory tokensToSendDetails,
+        bool isEao,
+        CcipFeeLib.PayFeesIn payFeesIn
+    ) external view returns (uint256 fee) {
+
+        return CcipFeeLib.getCcipTokenTransferBatchFee(
+            destinationChainSelector, 
+            receiver, 
+            tokensToSendDetails, 
+            isEao, 
+            _router,
+            _link, 
+            payFeesIn
+        );
     }
 
     /**
@@ -489,6 +548,34 @@ contract TranseptorAccount is ERC4337BaseAccount, UUPSUpgradeable, Initializable
             detail.token,
             detail.amount
         );
+    }
+
+    /**
+      * @notice Allows the contract owner to withdraw the entire balance of Ether from the contract.
+      * @dev This function reverts if there are no funds to withdraw or if the transfer fails.
+      * It should only be callable by the owner of the contract.
+      * @param beneficiary The address to which the Ether should be sent.
+    */
+    function withdraw(address beneficiary) public onlyOwner {
+        uint256 amount = address(this).balance;
+        if (amount == 0) revert NothingToWithdraw();
+        (bool sent, ) = beneficiary.call{value: amount}("");
+        if (!sent) revert FailedToWithdrawEth(msg.sender, beneficiary, amount);
+    }
+
+    /**
+      * @notice Allows the owner of the contract to withdraw all tokens of a specific ERC20 token.
+      * @dev This function reverts with a 'NothingToWithdraw' error if there are no tokens to withdraw.
+      * @param beneficiary The address to which the tokens will be sent.
+      * @param token The contract address of the ERC20 token to be withdrawn.
+    */
+    function withdrawToken(
+        address beneficiary,
+        address token
+    ) public onlyOwner {
+        uint256 amount = IERC20(token).balanceOf(address(this));
+        if (amount == 0) revert NothingToWithdraw();
+        IERC20(token).transfer(beneficiary, amount);
     }
 
     /* ******************************************************

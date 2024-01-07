@@ -65,9 +65,11 @@ export interface DestinationAccountFactoryReceiverInterface
   extends utils.Interface {
   functions: {
     "ccipReceive((bytes32,uint64,bytes,bytes,(address,uint256)[]))": FunctionFragment;
+    "getAccountFactory()": FunctionFragment;
     "getRouter()": FunctionFragment;
     "owner()": FunctionFragment;
     "renounceOwnership()": FunctionFragment;
+    "setAccountFactory(address)": FunctionFragment;
     "supportsInterface(bytes4)": FunctionFragment;
     "transferOwnership(address)": FunctionFragment;
   };
@@ -75,9 +77,11 @@ export interface DestinationAccountFactoryReceiverInterface
   getFunction(
     nameOrSignatureOrTopic:
       | "ccipReceive"
+      | "getAccountFactory"
       | "getRouter"
       | "owner"
       | "renounceOwnership"
+      | "setAccountFactory"
       | "supportsInterface"
       | "transferOwnership"
   ): FunctionFragment;
@@ -86,11 +90,19 @@ export interface DestinationAccountFactoryReceiverInterface
     functionFragment: "ccipReceive",
     values: [Client.Any2EVMMessageStruct]
   ): string;
+  encodeFunctionData(
+    functionFragment: "getAccountFactory",
+    values?: undefined
+  ): string;
   encodeFunctionData(functionFragment: "getRouter", values?: undefined): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "renounceOwnership",
     values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "setAccountFactory",
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "supportsInterface",
@@ -105,10 +117,18 @@ export interface DestinationAccountFactoryReceiverInterface
     functionFragment: "ccipReceive",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(
+    functionFragment: "getAccountFactory",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "getRouter", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "renounceOwnership",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "setAccountFactory",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -182,11 +202,18 @@ export interface DestinationAccountFactoryReceiver extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
+    getAccountFactory(overrides?: CallOverrides): Promise<[string]>;
+
     getRouter(overrides?: CallOverrides): Promise<[string]>;
 
     owner(overrides?: CallOverrides): Promise<[string]>;
 
     renounceOwnership(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    setAccountFactory(
+      accountFactoryAddress: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
@@ -206,11 +233,18 @@ export interface DestinationAccountFactoryReceiver extends BaseContract {
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
+  getAccountFactory(overrides?: CallOverrides): Promise<string>;
+
   getRouter(overrides?: CallOverrides): Promise<string>;
 
   owner(overrides?: CallOverrides): Promise<string>;
 
   renounceOwnership(
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  setAccountFactory(
+    accountFactoryAddress: PromiseOrValue<string>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
@@ -230,11 +264,18 @@ export interface DestinationAccountFactoryReceiver extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
+    getAccountFactory(overrides?: CallOverrides): Promise<string>;
+
     getRouter(overrides?: CallOverrides): Promise<string>;
 
     owner(overrides?: CallOverrides): Promise<string>;
 
     renounceOwnership(overrides?: CallOverrides): Promise<void>;
+
+    setAccountFactory(
+      accountFactoryAddress: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     supportsInterface(
       interfaceId: PromiseOrValue<BytesLike>,
@@ -267,11 +308,18 @@ export interface DestinationAccountFactoryReceiver extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
+    getAccountFactory(overrides?: CallOverrides): Promise<BigNumber>;
+
     getRouter(overrides?: CallOverrides): Promise<BigNumber>;
 
     owner(overrides?: CallOverrides): Promise<BigNumber>;
 
     renounceOwnership(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    setAccountFactory(
+      accountFactoryAddress: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
@@ -292,11 +340,18 @@ export interface DestinationAccountFactoryReceiver extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
+    getAccountFactory(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     getRouter(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     renounceOwnership(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    setAccountFactory(
+      accountFactoryAddress: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 

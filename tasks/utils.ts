@@ -97,7 +97,7 @@ export const getTranseptorAccontFactoyAddess = (network: string) => {
     return ERC_4337_ACCOUNT_FACTORY_ADDRESSES[network];
 }
 
-export const getTranseptorAccontFactoyReceiverAddess = (network: string) => {
+export const getTranseptorAccountFactoyReceiverAddess = (network: string) => {
     return ERC_4337_ACCOUNT_FACTORY_RECEVIER_ADDRESSES[network];
 }
 
