@@ -127,7 +127,7 @@ npx hardhat faucet --network ethereumSepolia --receiver <RECEIVER_ADDRESS>
 - billing: https://docs.chain.link/ccip/billing
 - gaslimit: The gasLimit specifies the maximum amount of gas CCIP can consume to execute `ccipReceive()` on the contract located on the `destination blockchain`. Read more about gasLimit best practices [here](https://docs.chain.link/ccip/best-practices#setting-gaslimit) (**Unspent gas is not refunded.**).
 
-## Deploy Account Factory on destination chains
+## Deploy TranseptorAccountFactory on destination chains
 
 To deploy an account factory, run the following command:
 
@@ -139,7 +139,7 @@ Where the list of supported chains consists of (case sensitive):
 - polygonMumbai
 
 ```shell
-npx hardhat deploy-account-factory --network <DESTINATION_CHAIN>
+npx hardhat deploy-smart-account-factory --network <DESTINATION_CHAIN>
 ```
 
 For example, if you want to deploy an account factory to optimismGoerli you need to deploy this contract on optimismGoerli, by running:
@@ -148,8 +148,33 @@ For example, if you want to deploy an account factory to optimismGoerli you need
 npx hardhat deploy-account-factory --network optimismGoerli
 ```
 
+## Deploy DestinationAccountFactoryReceiver on destination chains
+
+The `DestinationAccountFactoryReceiver` with recevice ccip message with encoded dat to call the `createAccount(address owner,uint256 salt)` funtion on the `TranseptorAccountFactory` contract. This will allow user to deploy a `TranseptorAccount` on the destination(L2) chain from source(L1) chain paying the gas fees in native token of source chain so there is no need to bridge assets to the destination chain to pay the gas fees.
+
+To deploy an `DestinationAccountFactoryReceiver`, run the following command:
+
+Where the list of supported chains consists of (case sensitive):
+
+- optimismGoerli
+- arbitrumTestnet
+- avalancheFuji
+- polygonMumbai
+
+```shell
+npx hardhat deploy-destination-account-factory-receiver --network <DESTINATION_CHAIN>
+```
+
+For example, if you want to deploy an account factory to optimismGoerli you need to deploy this contract on optimismGoerli, by running:
+
+```shell
+npx hardhat deploy-destination-account-factory-receiver --network optimismGoerli
+```
+
 ## Cross-chain Transeptor Smart account deployment
-To deploy a cross-chain transeptor smart account, run the following command:
+Cross-chain Transeptor Smart account deployment is a two step process. First you need to deploy a `TranseptorAccountFactory` on the destination chain and then you need to deploy a `DestinationAccountFactoryReceiver` on the destination chain. The `DestinationAccountFactoryReceiver` will receive the ccip message with encoded data to call the `createAccount(address owner,uint256 salt)` funtion on the `TranseptorAccountFactory` contract. This will allow user to deploy a `TranseptorAccount` on the destination(L2) chain from source(L1) chain paying the gas fees in native token of source chain so there is no need to bridge assets to the destination chain to pay the gas fees.
+
+All transactions will have `ethereumSepolia` as the source chain and the destination chain will be the chain where the `DestinationAccountFactoryReceiver` is deployed.
 
 Where the list of supported destination chains consists of (case sensitive):
 
@@ -157,6 +182,8 @@ Where the list of supported destination chains consists of (case sensitive):
 - arbitrumTestnet
 - avalancheFuji
 - polygonMumbai
+
+To deploy a cross-chain transeptor smart account, run the following command:
 
 ```shell  
 npx hardhat ccip-smart-account-deploy 
@@ -169,82 +196,39 @@ npx hardhat ccip-smart-account-deploy
 
 This command with send a ccip message to an `DestinationAccountFactoryReceiver` deployed on a destination chain(L2). After the transctoin reaches finility on destination chain you user can start using the Transeptor Smart Account on the destination chain to execute userOps via a erc-4337 bundler or execute cross-chain token transfer transactions.
 
-## Deploy a Basic counter
-To deploy an BasicCounter, run the following command:
+## Transfer Token from Transeptor Smart Contract to any destination chain
 
-```shell
-npx hardhat deploy-basic-counter --network optimismGoerli --owner <OWNER_ADDRESS> 
-```
+To transfer a token from a single, universal, first make sure the token is supported by the Chainlink CCIP and your account has a balance of the token or is approved to spend the token.
 
-## Cross-chain Transeptor Smart account execution
-When a ccip message is received by the `_ccipReceive()` function with encoded data (`address dest, uint256 value, bytes calldata func`) the `_ccipReceive()` function will execute the `func` function on the `dest` address with the `value` amount in native token of destination chain. The function call will be executed on the destination chain **only** if the sender of the message is the owner of Transeptor Smart Account. This means all the cross-chain messages sent to the Transeptor Smart Account must be signed and sent by the E0A owner of the Transeptor Smart Account.
+The externally exposed `ccipSendToken()` function on the Transeptor Smart Contract can be used to transfer tokens from the Transeptor Smart Contract to any destination chain.
 
-This secuity measure is implemented to prevent the Transeptor Smart Account from being used by anyone else other than the owner of the Transeptor Smart Account. Similar to `execute()` function when called from the Entry Point Contract.
+To send a token, run the following command:
 
-This feature is powerful because it allows the owner to have a Transeptor Smart Account on multiple chains and execute cross-chain transactions without having to bridge assets to those chains.
+Where the list of supported chains consists of (case sensitive):
 
-**example**: 
-In this example here is the users account setup:
-- Ethereum: EOA with a Eth blance
-- Optimism: Transeptor Smart Account with a depoisit on the Entry Point Contract on Optimism
-- User Intent: The user wans to call a function on a smart contract on Optimism from their Transeptor Smart Account on Optimism.
-
-The EOA owner can send a cross-chain message to the Transeptor Smart Account on Optimism from Ethereum and execute a function on the Transeptor Smart Account on Optimism. The function will be executed on Optimism and the EOA owner will pay the gas fees in native token of Ethereum.
-
-To execute a cross-chain transaction on the Transeptor Smart Account, run the following command:
-
-Where the list of supported destination chains consists of (case sensitive):
-
+- ethereumSepolia
 - optimismGoerli
 - arbitrumTestnet
 - avalancheFuji
 - polygonMumbai
 
-```shell  
-npx hardhat ccip-smart-account-execute 
---network ethereumSepolia
---receiver <TRANSEPTOR_SMART_ACCOUNT_RECEIVER_ADDRESS_ON_DESTINATION_CHAIN>
---destinationBlockchain <Destination Chain>
---dest <DESTINATION_SMART_CONTRACT_ADDRESS_TO_CALL>
---pay-fees-in <Native | LINK>
+```shell
+npx hardhat ccip-smart-account-token-transfer --network <DESTINATION_CHAIN>
 ```
 
-## Transfer Token from Transeptor Smart Contract to any destination chain
+For example, if you have a Trnanseptor smart account on `optimismGoerli` and you want to send a token to `ethereumSepolia`, run:
 
-To transfer a token from a single, universal, first make sure the token is supported by the Chainlink CCIP and your account has a balance of the token or is approved to spend the token.
 
-The externally exposed `ccipSendToken()` function on the Transeptor Smart Contract can be used to transfer tokens from the Transeptor Smart Contract to any destination chain. It takes the following parameters:
- * @param destinationChainSelector Destination chain selector
- * @param receiver Receiver address. The receiver can be a smart contract or an EAO.
- * @param tokensToSendDetails Array of token details to send
- * @param isEao true if receiver is an EAO
- * @param payFeesIn Pay fees in LINK or native token on source chain
- * @return messageId The ID of the message that was sent.
-
-Example sending token with messaage with hardhat paying fee in native token:
-```ts
-const targetChainSelector = 2664363617261496610 // optimismGoerli
-const receiver = '0x000000' // receiver address on target chain (optimismGoerli)
-const tokenAddress = '0x420000'
-const amount = '1000000000000000000' // 1 token
-const isEao = false
-const payFeesIn = 0 // 0 = pay fees in native token, 1 = pay fees in LINK
-
-// create an instance of the Transeptor Smart Contract
-const transeptorAccount: TranseptorAccount = TranseptorAccount__factory.connect(basicTokenSenderAddress, signer)
-
-// call the ccipSend function with required parameters
-const tx = await transeptorAccount.ccipSendToken(
-    destinationChainSelector,
-    receiver,
-    tokenAddress,
-    amount,
-    isEao,
-    payFeesIn
-)
-        
-const receipt = await tx.wait();
-console.log(`✅ Message sent, transaction hash: ${tx.hash}`);
+```shell
+npx hardhat ccip-smart-account-token-transfer 
+--network optimismGoerli
+--destinationBlockchain ethereumSepolia
+--receiver <RECEIVER_ADDRESS_DESTINATION_CHAIN>
+--tokenAddress <TOKEN_ADDRESS_SOURCE_CHAIN>
+--amount <AMOUNT>
+--sender <TRANSEPTOR_SMART_ACCOUNT_ADDRESS_SOURCE_CHAIN>
+--isReceiverEoa <true | false>
+--pay-fees-in <Native | LINK>
 ```
 
 ## Transfer batch Tokens from Transeptor Smart Contract to any destination chain
@@ -291,4 +275,11 @@ const tx = await transeptorAccount.ccipSendTokenBatch(
         
 const receipt = await tx.wait();
 console.log(`✅ Message sent, transaction hash: ${tx.hash}`);
+```
+
+## Deploy a Basic counter
+To deploy an BasicCounter, run the following command:
+
+```shell
+npx hardhat deploy-basic-counter --network optimismGoerli --owner <OWNER_ADDRESS> 
 ```

@@ -29,22 +29,6 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.Client__factory>;
     getContractFactory(
-      name: "ConfirmedOwner",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.ConfirmedOwner__factory>;
-    getContractFactory(
-      name: "ConfirmedOwnerWithProposal",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.ConfirmedOwnerWithProposal__factory>;
-    getContractFactory(
-      name: "OwnableInterface",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.OwnableInterface__factory>;
-    getContractFactory(
-      name: "OwnerIsCreator",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.OwnerIsCreator__factory>;
-    getContractFactory(
       name: "IERC20",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IERC20__factory>;
@@ -121,6 +105,10 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IStakeManager__factory>;
     getContractFactory(
+      name: "CcipFeeLib",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.CcipFeeLib__factory>;
+    getContractFactory(
       name: "BasicCounter",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.BasicCounter__factory>;
@@ -132,10 +120,6 @@ declare module "hardhat/types/runtime" {
       name: "TranseptorAccountFactory",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.TranseptorAccountFactory__factory>;
-    getContractFactory(
-      name: "Withdraw",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.Withdraw__factory>;
     getContractFactory(
       name: "BurnMintERC677Helper",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -169,26 +153,6 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.Client>;
-    getContractAt(
-      name: "ConfirmedOwner",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.ConfirmedOwner>;
-    getContractAt(
-      name: "ConfirmedOwnerWithProposal",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.ConfirmedOwnerWithProposal>;
-    getContractAt(
-      name: "OwnableInterface",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.OwnableInterface>;
-    getContractAt(
-      name: "OwnerIsCreator",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.OwnerIsCreator>;
     getContractAt(
       name: "IERC20",
       address: string,
@@ -285,6 +249,11 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.IStakeManager>;
     getContractAt(
+      name: "CcipFeeLib",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.CcipFeeLib>;
+    getContractAt(
       name: "BasicCounter",
       address: string,
       signer?: ethers.Signer
@@ -299,11 +268,6 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.TranseptorAccountFactory>;
-    getContractAt(
-      name: "Withdraw",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.Withdraw>;
     getContractAt(
       name: "BurnMintERC677Helper",
       address: string,

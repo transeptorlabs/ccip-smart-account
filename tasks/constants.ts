@@ -79,9 +79,8 @@ export const ERC_4337_ENTRYPOINT_ADDRESSES: AddressMap = {
 }
 
 export const ERC_4337_ACCOUNT_FACTORY_ADDRESSES: AddressMap = {
-    [`ethereumSepolia`]: `0x1299827B58857b068DF16B1F92Df1489a9599F4f`,
     [`polygonMumbai`]: ``,
-    [`optimismGoerli`]: `0xE914373f8009245b5898D9440E78669D01EFCEE6`,
+    [`optimismGoerli`]: `0x896Cf0F48E2F6d89E5B715446e1Da8B734E31B8A`,
     [`arbitrumTestnet`]: ``,
     [`avalancheFuji`]: ``
 }

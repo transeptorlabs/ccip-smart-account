@@ -7,7 +7,7 @@ import { CCIPReceiver } from "@chainlink/contracts-ccip/src/v0.8/ccip/applicatio
 import { TranseptorAccountFactory } from "./TranseptorAccountFactory.sol";
 
 /**
- * A CCIPReceiver contract that allows crosschain Transeptor smart account creation.
+ * A CCIPReceiver contract that allows crosschain smart account creation.
  */
 contract DestinationAccountFactoryReceiver is CCIPReceiver, Ownable {
     TranseptorAccountFactory accountFactory;
@@ -18,6 +18,31 @@ contract DestinationAccountFactoryReceiver is CCIPReceiver, Ownable {
         accountFactory = TranseptorAccountFactory(accountFactoryAddress);
     }
 
+    /**
+     * @dev Sets the account factory address.
+     * @param accountFactoryAddress Account factory address
+     */
+    function setAccountFactory(address accountFactoryAddress) external onlyOwner {
+        accountFactory = TranseptorAccountFactory(accountFactoryAddress);
+    }
+
+
+    /**
+     * @dev Returns the account factory address.
+     */
+    function getAccountFactory() external view returns (address) {
+        return address(accountFactory);
+    }
+
+    /* ******************************************************
+     * Internal functions
+     * ******************************************************
+    */
+
+    /**
+     * @dev CCIPReceiver callback function will be called when a CCIP message is received to deploy a new smart account.
+     * @param message CCIP message
+     */
     function _ccipReceive(
         Client.Any2EVMMessage memory message
     ) internal override {

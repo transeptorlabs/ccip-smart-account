@@ -5,7 +5,7 @@ import { Wallet, providers } from "ethers";
 import { TranseptorAccountFactory__factory, TranseptorAccountFactory } from "../typechain-types";
 import { Spinner } from "../utils/spinner";
 
-task(`deploy-account-factory`, `Deploys the TranseptorAccountFactory smart contract`)
+task(`deploy-smart-account-factory`, `Deploys the TranseptorAccountFactory smart contract`)
     .addOptionalParam(`router`, `The address of the Router contract`)
     .setAction(async (taskArguments: TaskArguments, hre: HardhatRuntimeEnvironment) => {
         if (hre.network.name === 'ethereumSepolia') {
